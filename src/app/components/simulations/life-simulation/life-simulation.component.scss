@@ -1,0 +1,22 @@
+.space-between {
+  display: flex;
+  justify-content: space-between;
+  height: 60%;
+  margin: 1rem;
+}
+
+.box-container {
+  width: 48%;
+  height: 100%;
+
+  background-color: #fafafa;
+  border: 2px solid #cccccc;
+}
+
+.flexbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+}

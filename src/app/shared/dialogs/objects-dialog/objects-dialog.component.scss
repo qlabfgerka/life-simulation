@@ -1,0 +1,41 @@
+mat-dialog-content {
+  margin: 1rem 0.5rem;
+  max-height: 800px;
+}
+
+.margin-right {
+  margin-right: 10px;
+}
+
+.object-box {
+  border: 1px solid #cccccc;
+  padding: 0 0.5rem 1.2rem 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.object-box .title {
+  position: relative;
+  top: -0.75em;
+  margin-left: 1em;
+  display: inline;
+  background-color: var(--mdc-dialog-container-color, white);
+  min-width: 10px;
+}
+
+.scrollable-container {
+  max-height: 300px;
+  overflow: scroll;
+  padding: 1rem 20px 1rem 0;
+  margin: 0;
+}
+
+.static {
+  position: static;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

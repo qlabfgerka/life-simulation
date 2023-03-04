@@ -1,0 +1,142 @@
+<mat-dialog-content>
+  <div class="scrollable-container">
+    <form [formGroup]="objectsForm" *ngIf="objectsForm">
+      <div formArrayName="objects">
+        <div
+          *ngFor="let objectForm of objectsArray.controls; let i = index"
+          [formGroupName]="i"
+          class="object-box"
+        >
+          <div class="title">Object {{ i + 1 }}</div>
+          <div class="break"></div>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="amount"
+              placeholder="Amount of objects"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('amount')!.errors &&
+                objectsArray.controls[i].get('amount')!.errors!['required']
+              "
+            >
+              Please enter an amount.
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              formControlName="color"
+              placeholder="#000000"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('color')!.errors &&
+                objectsArray.controls[i].get('color')!.errors!['required']
+              "
+            >
+              Please enter a color.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('color')!.errors &&
+                objectsArray.controls[i].get('color')!.errors!['pattern']
+              "
+              style="display: block"
+            >
+              Please enter a color in the correct HEX format.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="spawnRate"
+              placeholder="0.2"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('spawnRate')!.errors &&
+                objectsArray.controls[i].get('spawnRate')!.errors!['required']
+              "
+            >
+              Please enter a spawn rate.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('spawnRate')!.errors &&
+                objectsArray.controls[i].get('spawnRate')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('spawnRate')!.errors &&
+                objectsArray.controls[i].get('spawnRate')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <input
+              matInput
+              type="number"
+              formControlName="dieRate"
+              placeholder="0.2"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('dieRate')!.errors &&
+                objectsArray.controls[i].get('dieRate')!.errors!['required']
+              "
+            >
+              Please enter a spawn rate.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('dieRate')!.errors &&
+                objectsArray.controls[i].get('dieRate')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('dieRate')!.errors &&
+                objectsArray.controls[i].get('dieRate')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="static">
+    <button mat-raised-button color="accent" (click)="accept()">ACCEPT</button>
+    <button mat-raised-button (click)="cancel()">CANCEL</button>
+  </div>
+</mat-dialog-content>
