@@ -5,6 +5,8 @@ export class ObjectDTO {
   color: string;
   dieRate: number;
   spawnRate: number;
+  x: number;
+  y: number;
 
   /**
    *
@@ -14,5 +16,7 @@ export class ObjectDTO {
     this.color = color;
     this.dieRate = dieRate;
     this.spawnRate = spawnRate;
+    this.x = 0;
+    this.y = 0;
   }
 }

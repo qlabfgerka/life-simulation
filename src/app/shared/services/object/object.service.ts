@@ -21,4 +21,21 @@ export class ObjectService {
 
     return objects;
   }
+
+  public initializePositions(
+    objects: ObjectDTO[],
+    width: number,
+    height: number
+  ): void {
+    for (const object of objects) {
+      object.x = this.getRandomIntInclusive(10, width - 10);
+      object.y = this.getRandomIntInclusive(10, height - 10);
+    }
+  }
+
+  private getRandomIntInclusive(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
 }

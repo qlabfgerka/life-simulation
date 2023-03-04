@@ -39,20 +39,25 @@ export class ObjectsDialogComponent implements OnInit {
     return this.objectsForm.controls['objects'] as FormArray;
   }
 
-  public addObjectInput(): void {
+  public addObjectInput(
+    amount: number | string = '',
+    color: string = '',
+    spawnRate: string = '',
+    dieRate: string = ''
+  ): void {
     this.objectsArray.push(
       this.formBuilder.group({
-        amount: ['', [Validators.required]],
+        amount: [amount, [Validators.required]],
         color: [
-          '',
+          color,
           [Validators.required, Validators.pattern(/^#[0-9a-f]{6}$/i)],
         ],
         spawnRate: [
-          '',
+          spawnRate,
           [Validators.required, Validators.min(0), Validators.max(1)],
         ],
         dieRate: [
-          '',
+          dieRate,
           [Validators.required, Validators.min(0), Validators.max(1)],
         ],
       })
@@ -102,6 +107,26 @@ export class ObjectsDialogComponent implements OnInit {
       objects: this.formBuilder.array([]),
     });
 
+    if (this.objects && this.objects.length > 0) this.patchValues();
+
     this.addObjectInput();
+  }
+
+  private patchValues(): void {
+    const groups = this.objects.reduce((acc: any, item: ObjectDTO) => {
+      if (!acc[item.color]) acc[item.color] = [];
+
+      acc[item.color].push(item);
+      return acc;
+    }, {});
+
+    for (const key in groups) {
+      this.addObjectInput(
+        groups[key].length,
+        groups[key][0].color,
+        groups[key][0].spawnRate,
+        groups[key][0].dieRate
+      );
+    }
   }
 }
