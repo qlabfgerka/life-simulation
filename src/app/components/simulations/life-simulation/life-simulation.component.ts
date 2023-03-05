@@ -17,10 +17,23 @@ export class LifeSimulationComponent {
   public animationInterval!: NodeJS.Timer;
   public paused: boolean = false;
 
+  private timer: number = 10;
+
   constructor(
     private readonly objectService: ObjectService,
     private readonly dialog: MatDialog
   ) {}
+
+  public formatLabel(value: number): string {
+    return `${value}ms`;
+  }
+
+  public timerChange(event: Event): void {
+    this.timer = +(event.target as HTMLInputElement).value;
+
+    if (!this.objects || this.objects.length === 0) return;
+    this.play();
+  }
 
   public openSettings(): void {
     const settingsDialogRef = this.dialog.open(ObjectsDialogComponent, {
@@ -55,6 +68,7 @@ export class LifeSimulationComponent {
   }
 
   private initScene(): void {
+    this.paused = false;
     this.drawObjects();
     this.initInterval();
   }
@@ -90,7 +104,8 @@ export class LifeSimulationComponent {
         this.canvas.nativeElement.clientWidth,
         this.canvas.nativeElement.clientHeight
       );
+      this.objectService.updateLife(this.objects);
       this.drawObjects();
-    }, 10);
+    }, this.timer);
   }
 }

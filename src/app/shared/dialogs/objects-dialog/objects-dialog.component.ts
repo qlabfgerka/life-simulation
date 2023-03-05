@@ -19,6 +19,8 @@ export class ObjectsDialogComponent implements OnInit {
   public objects!: ObjectDTO[];
   public objectsForm!: FormGroup;
 
+  private typeId: number = 0;
+
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: any,
     private readonly dialogRef: MatDialogRef<ObjectsDialogComponent>,
@@ -43,7 +45,8 @@ export class ObjectsDialogComponent implements OnInit {
     amount: number | string = '',
     color: string = '',
     spawnRate: string = '',
-    dieRate: string = ''
+    dieRate: string = '',
+    constant: string = ''
   ): void {
     this.objectsArray.push(
       this.formBuilder.group({
@@ -60,11 +63,16 @@ export class ObjectsDialogComponent implements OnInit {
           dieRate,
           [Validators.required, Validators.min(0), Validators.max(1)],
         ],
+        constant: [
+          constant,
+          [Validators.required, Validators.min(0), Validators.max(1)],
+        ],
       })
     );
   }
 
   public accept(): void {
+    this.typeId = 0;
     this.objects = new Array<ObjectDTO>();
 
     for (const object of this.objectsArray.controls) {
@@ -74,8 +82,10 @@ export class ObjectsDialogComponent implements OnInit {
         this.objectService.generateObjects(
           object.get('amount')!.value,
           object.get('color')!.value,
+          this.typeId++,
           object.get('dieRate')!.value,
-          object.get('spawnRate')!.value
+          object.get('spawnRate')!.value,
+          object.get('constant')!.value
         )
       );
     }
@@ -96,7 +106,8 @@ export class ObjectsDialogComponent implements OnInit {
       this.objectsArray.controls[i].get('amount')?.valid &&
       this.objectsArray.controls[i].get('color')?.valid &&
       this.objectsArray.controls[i].get('spawnRate')?.valid &&
-      this.objectsArray.controls[i].get('dieRate')?.valid
+      this.objectsArray.controls[i].get('dieRate')?.valid &&
+      this.objectsArray.controls[i].get('constant')?.valid
     ) {
       this.addObjectInput();
     }
@@ -114,9 +125,9 @@ export class ObjectsDialogComponent implements OnInit {
 
   private patchValues(): void {
     const groups = this.objects.reduce((acc: any, item: ObjectDTO) => {
-      if (!acc[item.color]) acc[item.color] = [];
+      if (!acc[item.typeId]) acc[item.typeId] = [];
 
-      acc[item.color].push(item);
+      acc[item.typeId].push(item);
       return acc;
     }, {});
 
@@ -125,7 +136,8 @@ export class ObjectsDialogComponent implements OnInit {
         groups[key].length,
         groups[key][0].color,
         groups[key][0].spawnRate,
-        groups[key][0].dieRate
+        groups[key][0].dieRate,
+        groups[key][0].constant
       );
     }
   }

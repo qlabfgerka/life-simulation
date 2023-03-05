@@ -10,13 +10,15 @@ export class ObjectService {
   public generateObjects(
     amount: number,
     color: string,
+    typeId: number,
     dieRate: number,
-    spawnRate: number
+    spawnRate: number,
+    constant: number
   ): ObjectDTO[] {
     const objects: ObjectDTO[] = new Array<ObjectDTO>();
 
     for (let i = 0; i < amount; i++) {
-      objects.push(new ObjectDTO(color, dieRate, spawnRate));
+      objects.push(new ObjectDTO(color, typeId, dieRate, spawnRate, constant));
     }
 
     return objects;
@@ -44,6 +46,35 @@ export class ObjectService {
       if (object.x > width || object.x < 0 || object.y > height || object.y < 0)
         this.initObject(object, width, height);
     }
+  }
+
+  public updateLife(objects: ObjectDTO[]): void {
+    const newborns: ObjectDTO[] = new Array<ObjectDTO>();
+    for (let i = objects.length - 1; i >= 0; i--) {
+      const randomLife = Math.random();
+      const randomDeath = Math.random();
+      const popSize = objects.filter(
+        (object: ObjectDTO) => object.typeId === objects[i].typeId
+      ).length;
+
+      if (randomLife < objects[i].spawnRate) {
+        newborns.push(
+          new ObjectDTO(
+            objects[i].color,
+            objects[i].typeId,
+            objects[i].dieRate,
+            objects[i].spawnRate,
+            objects[i].constant
+          )
+        );
+      }
+
+      if (randomDeath < objects[i].dieRate + objects[i].constant * popSize) {
+        objects.splice(i, 1);
+      }
+    }
+
+    objects = objects.concat(newborns);
   }
 
   private getRandomIntInclusive(min: number, max: number): number {

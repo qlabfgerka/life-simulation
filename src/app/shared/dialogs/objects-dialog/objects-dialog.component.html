@@ -32,7 +32,7 @@
             <input
               matInput
               formControlName="color"
-              placeholder="#000000"
+              placeholder="Color (#000000)"
               (input)="detectNewObject(i)"
             />
             <mat-error
@@ -60,7 +60,7 @@
               matInput
               type="number"
               formControlName="spawnRate"
-              placeholder="0.2"
+              placeholder="Spawn rate (0.1)"
               (input)="detectNewObject(i)"
             />
             <mat-error
@@ -93,12 +93,12 @@
             >
           </mat-form-field>
 
-          <mat-form-field appearance="fill">
+          <mat-form-field appearance="fill" class="margin-right">
             <input
               matInput
               type="number"
               formControlName="dieRate"
-              placeholder="0.2"
+              placeholder="Die rate (0.05)"
               (input)="detectNewObject(i)"
             />
             <mat-error
@@ -124,6 +124,44 @@
               *ngIf="
                 objectsArray.controls[i].get('dieRate')!.errors &&
                 objectsArray.controls[i].get('dieRate')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <input
+              matInput
+              type="number"
+              formControlName="constant"
+              placeholder="Constant (0.001)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('constant')!.errors &&
+                objectsArray.controls[i].get('constant')!.errors!['required']
+              "
+            >
+              Please enter a constant.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('constant')!.errors &&
+                objectsArray.controls[i].get('constant')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('constant')!.errors &&
+                objectsArray.controls[i].get('constant')!.errors!['max']
               "
               style="display: block"
             >

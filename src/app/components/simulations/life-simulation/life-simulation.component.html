@@ -27,4 +27,17 @@
   >
     PAUSE
   </button>
+
+  <div class="break"></div>
+
+  <mat-slider
+    min="0"
+    max="1000"
+    step="10"
+    showTickMarks
+    discrete
+    [displayWith]="formatLabel"
+  >
+    <input matSliderThumb (input)="timerChange($event)" value="10" />
+  </mat-slider>
 </div>
