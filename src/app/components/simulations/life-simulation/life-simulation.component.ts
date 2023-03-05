@@ -169,7 +169,7 @@ export class LifeSimulationComponent {
         this.lifeCanvas.nativeElement.clientWidth,
         this.lifeCanvas.nativeElement.clientHeight
       );
-      this.objectService.updateLife(this.objects);
+      this.objects = this.objectService.updateLife(this.objects);
       this.drawObjects();
     }, this.timer);
   }

@@ -48,14 +48,23 @@ export class ObjectService {
     }
   }
 
-  public updateLife(objects: ObjectDTO[]): void {
+  public updateLife(objects: ObjectDTO[]): ObjectDTO[] {
     const newborns: ObjectDTO[] = new Array<ObjectDTO>();
+    const objectTypes = [
+      ...new Set(objects.map((object: ObjectDTO) => object.typeId)),
+    ];
+    let popSizes: { [key: string]: number } = {};
+
+    for (const typeId of objectTypes) {
+      popSizes[typeId] = objects.filter(
+        (object: ObjectDTO) => object.typeId === typeId
+      ).length;
+    }
+
     for (let i = objects.length - 1; i >= 0; i--) {
       const randomLife = Math.random();
       const randomDeath = Math.random();
-      const popSize = objects.filter(
-        (object: ObjectDTO) => object.typeId === objects[i].typeId
-      ).length;
+      const popSize = popSizes[objects[i].typeId];
 
       if (randomLife < objects[i].spawnRate) {
         newborns.push(
@@ -75,6 +84,8 @@ export class ObjectService {
     }
 
     objects = objects.concat(newborns);
+
+    return objects;
   }
 
   private getRandomIntInclusive(min: number, max: number): number {
