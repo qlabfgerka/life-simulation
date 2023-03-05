@@ -13,7 +13,9 @@ export class LifeSimulationComponent {
   @ViewChild('lifeCanvas', { static: false })
   private canvas!: ElementRef<HTMLCanvasElement>;
 
-  private objects!: ObjectDTO[];
+  public objects!: ObjectDTO[];
+  public animationInterval!: NodeJS.Timer;
+  public paused: boolean = false;
 
   constructor(
     private readonly objectService: ObjectService,
@@ -34,12 +36,27 @@ export class LifeSimulationComponent {
 
       this.objectService.initializePositions(
         this.objects,
-        this.canvas.nativeElement.width,
-        this.canvas.nativeElement.height
+        this.canvas.nativeElement.clientWidth,
+        this.canvas.nativeElement.clientHeight
       );
 
-      this.drawObjects();
+      this.initScene();
     });
+  }
+
+  public play(): void {
+    this.initInterval();
+    this.paused = false;
+  }
+
+  public pause(): void {
+    if (this.animationInterval) clearInterval(this.animationInterval);
+    this.paused = true;
+  }
+
+  private initScene(): void {
+    this.drawObjects();
+    this.initInterval();
   }
 
   private drawObjects(): void {
@@ -49,9 +66,12 @@ export class LifeSimulationComponent {
     context.clearRect(
       0,
       0,
-      this.canvas.nativeElement.width,
-      this.canvas.nativeElement.height
+      this.canvas.nativeElement.clientWidth,
+      this.canvas.nativeElement.clientHeight
     );
+
+    this.canvas.nativeElement.width = this.canvas.nativeElement.clientWidth;
+    this.canvas.nativeElement.height = this.canvas.nativeElement.clientHeight;
 
     for (const object of this.objects) {
       context.beginPath();
@@ -59,5 +79,18 @@ export class LifeSimulationComponent {
       context.fillStyle = object.color;
       context.fill();
     }
+  }
+
+  private initInterval(): void {
+    if (this.animationInterval) clearInterval(this.animationInterval);
+
+    this.animationInterval = setInterval(() => {
+      this.objectService.updatePositions(
+        this.objects,
+        this.canvas.nativeElement.clientWidth,
+        this.canvas.nativeElement.clientHeight
+      );
+      this.drawObjects();
+    }, 10);
   }
 }

@@ -28,8 +28,21 @@ export class ObjectService {
     height: number
   ): void {
     for (const object of objects) {
-      object.x = this.getRandomIntInclusive(10, width - 10);
-      object.y = this.getRandomIntInclusive(10, height - 10);
+      this.initObject(object, width, height);
+    }
+  }
+
+  public updatePositions(
+    objects: ObjectDTO[],
+    width: number,
+    height: number
+  ): void {
+    for (const object of objects) {
+      object.x += this.getRandomIntInclusive(-2, 2);
+      object.y += this.getRandomIntInclusive(-2, 2);
+
+      if (object.x > width || object.x < 0 || object.y > height || object.y < 0)
+        this.initObject(object, width, height);
     }
   }
 
@@ -37,5 +50,10 @@ export class ObjectService {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  private initObject(object: ObjectDTO, width: number, height: number): void {
+    object.x = this.getRandomIntInclusive(10, width - 10);
+    object.y = this.getRandomIntInclusive(10, height - 10);
   }
 }
