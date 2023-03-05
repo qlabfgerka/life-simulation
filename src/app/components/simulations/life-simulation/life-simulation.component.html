@@ -2,7 +2,9 @@
   <div class="box-container">
     <canvas #lifeCanvas class="canvas"></canvas>
   </div>
-  <div class="box-container"></div>
+  <div class="box-container">
+    <canvas #chartCanvas class="canvas"></canvas>
+  </div>
 </div>
 
 <div class="flexbox">
@@ -33,11 +35,11 @@
   <mat-slider
     min="0"
     max="1000"
-    step="10"
+    step="100"
     showTickMarks
     discrete
     [displayWith]="formatLabel"
   >
-    <input matSliderThumb (input)="timerChange($event)" value="10" />
+    <input matSliderThumb (input)="timerChange($event)" [value]="timer" />
   </mat-slider>
 </div>
