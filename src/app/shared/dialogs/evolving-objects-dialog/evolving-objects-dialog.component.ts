@@ -47,7 +47,7 @@ export class EvolvingObjectsDialogComponent {
         amount: [amount, [Validators.required]],
         energy: [
           energy,
-          [Validators.required, Validators.min(10), Validators.max(1000)],
+          [Validators.required, Validators.min(10), Validators.max(10000000)],
         ],
         radius: [
           radius,
@@ -55,11 +55,11 @@ export class EvolvingObjectsDialogComponent {
         ],
         velocity: [
           velocity,
-          [Validators.required, Validators.min(1), Validators.max(10)],
+          [Validators.required, Validators.min(1), Validators.max(100)],
         ],
         perception: [
           perception,
-          [Validators.required, Validators.min(1), Validators.max(10)],
+          [Validators.required, Validators.min(1), Validators.max(100)],
         ],
       })
     );

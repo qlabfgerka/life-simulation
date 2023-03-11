@@ -16,9 +16,7 @@ export class BasicEvolutionComponent {
 
   public objects!: EvolvingObjectDTO[];
   public food!: FoodDTO[];
-  public animationInterval!: NodeJS.Timer;
-  public paused: boolean = false;
-  public timer: number = 100;
+  public paused: boolean = true;
   public foodAmount: number = 10;
   public foodSize: number = 10;
   public size: number = 250;
@@ -26,6 +24,7 @@ export class BasicEvolutionComponent {
   private scene!: THREE.Scene;
   private renderer!: THREE.WebGLRenderer;
   private camera!: THREE.OrthographicCamera;
+  private id!: number;
 
   @HostListener('window:resize', ['$event'])
   public onResize() {
@@ -36,17 +35,6 @@ export class BasicEvolutionComponent {
     private readonly evolvingObjectService: EvolvingObjectService,
     private readonly dialog: MatDialog
   ) {}
-
-  public formatLabel(value: number): string {
-    return `${value}ms`;
-  }
-
-  public timerChange(event: Event): void {
-    this.timer = +(event.target as HTMLInputElement).value;
-
-    if (!this.objects || this.objects.length === 0) return;
-    this.play();
-  }
 
   public openSettings(): void {
     const settingsDialogRef = this.dialog.open(EvolvingObjectsDialogComponent, {
@@ -65,17 +53,18 @@ export class BasicEvolutionComponent {
   }
 
   public play(): void {
-    this.initInterval();
     this.paused = false;
+
+    this.animate();
   }
 
   public pause(): void {
-    if (this.animationInterval) clearInterval(this.animationInterval);
     this.paused = true;
   }
 
   public reset(): void {
-    this.pause();
+    if (this.id) cancelAnimationFrame(this.id);
+    this.paused = true;
 
     this.frame.nativeElement.innerHTML = '';
 
@@ -114,21 +103,6 @@ export class BasicEvolutionComponent {
     this.frame.nativeElement.appendChild(this.renderer.domElement);
   }
 
-  private initInterval(): void {
-    if (this.animationInterval) clearInterval(this.animationInterval);
-
-    this.animationInterval = setInterval(() => {
-      /*this.evolvingObjectService.updatePositions(
-        this.objects,
-        this.lifeCanvas.nativeElement.clientWidth,
-        this.lifeCanvas.nativeElement.clientHeight
-      );
-      this.objects = this.objectService.updateLife(this.objects);*/
-      this.drawObjects();
-      this.spawnFood();
-    }, this.timer);
-  }
-
   private drawObjects(): void {
     let geometry: THREE.SphereGeometry;
     let material: THREE.MeshBasicMaterial;
@@ -146,6 +120,7 @@ export class BasicEvolutionComponent {
       mesh.position.x = object.x;
       mesh.position.y = object.y;
 
+      object.mesh = mesh;
       this.scene.add(mesh);
     }
   }
@@ -157,19 +132,17 @@ export class BasicEvolutionComponent {
     let x: number;
     let y: number;
 
-    const halfSize = this.size / 2;
+    const sizeChunk = this.size / 4;
 
     for (let i = 0; i < this.foodAmount; i++) {
       x = this.evolvingObjectService.getRandomIntInclusive(
-        -this.size + halfSize,
-        this.size - halfSize
+        -this.size + sizeChunk,
+        this.size - sizeChunk
       );
       y = this.evolvingObjectService.getRandomIntInclusive(
-        -this.size + halfSize,
-        this.size - halfSize
+        -this.size + sizeChunk,
+        this.size - sizeChunk
       );
-
-      this.food.push(new FoodDTO(1, x, y, 5, 5));
 
       geometry = new THREE.BoxGeometry(this.foodSize, this.foodSize);
       material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
@@ -178,7 +151,32 @@ export class BasicEvolutionComponent {
       mesh.position.x = x;
       mesh.position.y = y;
 
+      this.food.push(
+        new FoodDTO(
+          this.evolvingObjectService.getRandomIntInclusive(1, 5),
+          x,
+          y,
+          5,
+          5,
+          mesh
+        )
+      );
       this.scene.add(mesh);
     }
+  }
+
+  private animate() {
+    if (this.paused) return;
+
+    this.id = requestAnimationFrame(() => this.animate());
+
+    this.evolvingObjectService.updatePositions(
+      this.objects,
+      this.food,
+      this.scene,
+      this.size
+    );
+
+    this.renderer.render(this.scene, this.camera);
   }
 }

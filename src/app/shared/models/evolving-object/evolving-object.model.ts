@@ -5,6 +5,7 @@ export class EvolvingObjectDTO extends ObjectDTO {
   radius: number;
   velocity: number;
   perception: number;
+  mesh: THREE.Mesh;
 
   constructor(
     color: string,
@@ -19,5 +20,6 @@ export class EvolvingObjectDTO extends ObjectDTO {
     this.radius = radius;
     this.velocity = velocity;
     this.perception = perception;
+    this.mesh = null!;
   }
 }

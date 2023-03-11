@@ -23,7 +23,7 @@
     mat-raised-button
     color="accent"
     (click)="pause()"
-    [disabled]="!animationInterval || paused"
+    [disabled]="paused"
   >
     PAUSE
   </button>
@@ -36,19 +36,6 @@
   >
     RESET
   </button>
-
-  <div class="break"></div>
-
-  <mat-slider
-    min="0"
-    max="1000"
-    step="100"
-    showTickMarks
-    discrete
-    [displayWith]="formatLabel"
-  >
-    <input matSliderThumb (input)="timerChange($event)" [value]="timer" />
-  </mat-slider>
 
   <div class="break"></div>
 
