@@ -40,14 +40,8 @@ export class EvolvingObjectService {
     return objects;
   }
 
-  public initializePositions(
-    objects: EvolvingObjectDTO[],
-    width: number,
-    height: number
-  ): void {
-    for (const object of objects) {
-      this.initObject(object, width, height);
-    }
+  public initializePositions(objects: EvolvingObjectDTO[], size: number): void {
+    for (const object of objects) this.initObject(object, size);
   }
 
   /*public updatePositions(
@@ -104,20 +98,16 @@ export class EvolvingObjectService {
     return objects;
   }*/
 
-  private initObject(
-    object: EvolvingObjectDTO,
-    width: number,
-    height: number
-  ): void {
+  private initObject(object: EvolvingObjectDTO, size: number): void {
     const radius = object.radius / 2;
     if (Math.random() < 0.5) {
-      object.y = this.getRandomIntInclusive(radius, height + radius);
-      if (Math.random() < 0.5) object.x = radius;
-      else object.x = width - radius;
+      object.y = this.getRandomIntInclusive(-size + radius, size - radius);
+      if (Math.random() < 0.5) object.x = -size + radius;
+      else object.x = size - radius;
     } else {
-      object.x = this.getRandomIntInclusive(radius, width + radius);
-      if (Math.random() < 0.5) object.y = radius;
-      else object.y = height - radius;
+      object.x = this.getRandomIntInclusive(-size + radius, size - radius);
+      if (Math.random() < 0.5) object.y = -size + radius;
+      else object.y = size - radius;
     }
   }
 }

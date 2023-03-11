@@ -1,7 +1,5 @@
 <div class="space-between">
-  <div class="box-container">
-    <canvas #lifeCanvas class="canvas"></canvas>
-  </div>
+  <div class="box-container" #frame></div>
   <div class="box-container">
     <canvas #chartCanvas class="canvas"></canvas>
   </div>
@@ -54,7 +52,7 @@
 
   <div class="break"></div>
 
-  <mat-form-field class="example-full-width">
+  <mat-form-field class="example-full-width" style="margin-right: 1rem">
     <mat-label>Food amount</mat-label>
     <input
       matInput
@@ -63,6 +61,30 @@
       min="1"
       max="1000"
       [(ngModel)]="foodAmount"
+    />
+  </mat-form-field>
+
+  <mat-form-field class="example-full-width" style="margin-right: 1rem">
+    <mat-label>Food size</mat-label>
+    <input
+      matInput
+      type="number"
+      placeholder="10"
+      min="1"
+      max="1000"
+      [(ngModel)]="foodSize"
+    />
+  </mat-form-field>
+
+  <mat-form-field class="example-full-width">
+    <mat-label>World size</mat-label>
+    <input
+      matInput
+      type="number"
+      placeholder="10"
+      min="10"
+      max="1000"
+      [(ngModel)]="size"
     />
   </mat-form-field>
 </div>

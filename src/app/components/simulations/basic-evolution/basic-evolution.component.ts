@@ -4,6 +4,7 @@ import { EvolvingObjectsDialogComponent } from 'src/app/shared/dialogs/evolving-
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { EvolvingObjectService } from 'src/app/shared/services/evolving-object/evolving-object.service';
+import * as THREE from 'three';
 
 @Component({
   selector: 'app-basic-evolution',
@@ -11,8 +12,7 @@ import { EvolvingObjectService } from 'src/app/shared/services/evolving-object/e
   styleUrls: ['./basic-evolution.component.scss'],
 })
 export class BasicEvolutionComponent {
-  @ViewChild('lifeCanvas', { static: false })
-  private lifeCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('frame', { static: false }) private readonly frame!: ElementRef;
 
   public objects!: EvolvingObjectDTO[];
   public food!: FoodDTO[];
@@ -20,6 +20,12 @@ export class BasicEvolutionComponent {
   public paused: boolean = false;
   public timer: number = 100;
   public foodAmount: number = 10;
+  public foodSize: number = 10;
+  public size: number = 250;
+
+  private scene!: THREE.Scene;
+  private renderer!: THREE.WebGLRenderer;
+  private camera!: THREE.OrthographicCamera;
 
   @HostListener('window:resize', ['$event'])
   public onResize() {
@@ -71,16 +77,41 @@ export class BasicEvolutionComponent {
   public reset(): void {
     this.pause();
 
-    this.evolvingObjectService.initializePositions(
-      this.objects,
-      this.lifeCanvas.nativeElement.clientWidth,
-      this.lifeCanvas.nativeElement.clientHeight
-    );
+    this.frame.nativeElement.innerHTML = '';
 
+    this.evolvingObjectService.initializePositions(this.objects, this.size);
+
+    this.initRenderer();
+    this.initCamera();
+
+    this.scene = new THREE.Scene();
     this.food = [];
 
     this.drawObjects();
     this.spawnFood();
+
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  private initCamera(): void {
+    this.camera = new THREE.OrthographicCamera(
+      -this.size,
+      this.size,
+      -this.size,
+      this.size
+    );
+    this.camera.position.set(0, 0, 500);
+    this.camera.lookAt(0, 0, 0);
+  }
+
+  private initRenderer(): void {
+    this.renderer = new THREE.WebGLRenderer();
+    this.renderer.setSize(
+      this.frame.nativeElement.offsetWidth,
+      this.frame.nativeElement.offsetHeight
+    );
+    this.renderer.setClearColor(0xfafafa);
+    this.frame.nativeElement.appendChild(this.renderer.domElement);
   }
 
   private initInterval(): void {
@@ -99,42 +130,55 @@ export class BasicEvolutionComponent {
   }
 
   private drawObjects(): void {
-    const context = this.lifeCanvas.nativeElement.getContext('2d')!;
-    const width = this.lifeCanvas.nativeElement.clientWidth;
-    const height = this.lifeCanvas.nativeElement.clientHeight;
-
-    context.clearRect(0, 0, width, height);
-
-    this.lifeCanvas.nativeElement.width = width;
-    this.lifeCanvas.nativeElement.height = height;
+    let geometry: THREE.SphereGeometry;
+    let material: THREE.MeshBasicMaterial;
+    let mesh: THREE.Mesh;
 
     for (const object of this.objects) {
-      context.beginPath();
-      context.arc(object.x, object.y, object.radius, 0, 2 * Math.PI, false);
-      context.fillStyle = object.color;
-      context.fill();
+      geometry = new THREE.SphereGeometry(
+        object.radius,
+        object.radius,
+        object.radius
+      );
+      material = new THREE.MeshBasicMaterial({ color: object.color });
+
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.position.x = object.x;
+      mesh.position.y = object.y;
+
+      this.scene.add(mesh);
     }
   }
 
   private spawnFood(): void {
-    const context = this.lifeCanvas.nativeElement.getContext('2d')!;
-    const width = this.lifeCanvas.nativeElement.clientWidth;
-    const height = this.lifeCanvas.nativeElement.clientHeight;
-
+    let geometry: THREE.BoxGeometry;
+    let material: THREE.MeshBasicMaterial;
+    let mesh: THREE.Mesh;
     let x: number;
     let y: number;
 
-    context.fillStyle = '#ff0000';
+    const halfSize = this.size / 2;
 
     for (let i = 0; i < this.foodAmount; i++) {
-      x = this.evolvingObjectService.getRandomIntInclusive(20, width - 20);
-      y = this.evolvingObjectService.getRandomIntInclusive(20, height - 20);
+      x = this.evolvingObjectService.getRandomIntInclusive(
+        -this.size + halfSize,
+        this.size - halfSize
+      );
+      y = this.evolvingObjectService.getRandomIntInclusive(
+        -this.size + halfSize,
+        this.size - halfSize
+      );
 
       this.food.push(new FoodDTO(1, x, y, 5, 5));
-      context.beginPath();
-      context.fillRect(x, y, 5, 5);
-    }
 
-    context.stroke();
+      geometry = new THREE.BoxGeometry(this.foodSize, this.foodSize);
+      material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.position.x = x;
+      mesh.position.y = y;
+
+      this.scene.add(mesh);
+    }
   }
 }
