@@ -7,9 +7,16 @@ import { EvolvingObjectDTO } from '../../models/evolving-object/evolving-object.
 export class EvolvingObjectService {
   constructor() {}
 
+  public getRandomIntInclusive(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
   public generateObjects(
     amount: number,
     typeId: number,
+    energy: number,
     radius: number,
     velocity: number,
     perception: number
@@ -21,8 +28,8 @@ export class EvolvingObjectService {
       objects.push(
         new EvolvingObjectDTO(
           color,
-          Math.pow(radius, 3) * Math.pow(velocity, 2) + perception,
           typeId,
+          energy,
           radius,
           velocity,
           perception
@@ -112,11 +119,5 @@ export class EvolvingObjectService {
       if (Math.random() < 0.5) object.y = radius;
       else object.y = height - radius;
     }
-  }
-
-  private getRandomIntInclusive(min: number, max: number): number {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min);
   }
 }

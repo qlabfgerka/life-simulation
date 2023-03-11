@@ -37,6 +37,7 @@ export class EvolvingObjectsDialogComponent {
 
   public addObjectInput(
     amount: number | string = '',
+    energy: string = '',
     radius: string = '',
     velocity: string = '',
     perception: string = ''
@@ -44,6 +45,10 @@ export class EvolvingObjectsDialogComponent {
     this.objectsArray.push(
       this.formBuilder.group({
         amount: [amount, [Validators.required]],
+        energy: [
+          energy,
+          [Validators.required, Validators.min(10), Validators.max(1000)],
+        ],
         radius: [
           radius,
           [Validators.required, Validators.min(5), Validators.max(20)],
@@ -71,6 +76,7 @@ export class EvolvingObjectsDialogComponent {
         this.evolvingObjectService.generateObjects(
           object.get('amount')!.value,
           this.typeId++,
+          object.get('energy')!.value,
           object.get('radius')!.value,
           object.get('velocity')!.value,
           object.get('perception')!.value
@@ -92,6 +98,7 @@ export class EvolvingObjectsDialogComponent {
 
     if (
       this.objectsArray.controls[i].get('amount')?.valid &&
+      this.objectsArray.controls[i].get('energy')?.valid &&
       this.objectsArray.controls[i].get('radius')?.valid &&
       this.objectsArray.controls[i].get('velocity')?.valid &&
       this.objectsArray.controls[i].get('perception')?.valid
@@ -121,6 +128,7 @@ export class EvolvingObjectsDialogComponent {
     for (const key in groups) {
       this.addObjectInput(
         groups[key].length,
+        groups[key][0].energy,
         groups[key][0].radius,
         groups[key][0].velocity,
         groups[key][0].perception

@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { EvolvingObjectsDialogComponent } from 'src/app/shared/dialogs/evolving-objects-dialog/evolving-objects-dialog.component';
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
@@ -17,6 +17,12 @@ export class BasicEvolutionComponent {
   public animationInterval!: NodeJS.Timer;
   public paused: boolean = false;
   public timer: number = 100;
+  public foodAmount: number = 10;
+
+  @HostListener('window:resize', ['$event'])
+  public onResize() {
+    this.reset();
+  }
 
   constructor(
     private readonly evolvingObjectService: EvolvingObjectService,
@@ -46,13 +52,7 @@ export class BasicEvolutionComponent {
 
       if (data.objects) this.objects = data.objects;
 
-      this.evolvingObjectService.initializePositions(
-        this.objects,
-        this.lifeCanvas.nativeElement.clientWidth,
-        this.lifeCanvas.nativeElement.clientHeight
-      );
-
-      this.initScene();
+      this.reset();
     });
   }
 
@@ -66,11 +66,17 @@ export class BasicEvolutionComponent {
     this.paused = true;
   }
 
-  private initScene(): void {
-    this.paused = false;
+  public reset(): void {
+    this.pause();
+
+    this.evolvingObjectService.initializePositions(
+      this.objects,
+      this.lifeCanvas.nativeElement.clientWidth,
+      this.lifeCanvas.nativeElement.clientHeight
+    );
 
     this.drawObjects();
-    this.initInterval();
+    this.spawnFood();
   }
 
   private initInterval(): void {
@@ -84,6 +90,7 @@ export class BasicEvolutionComponent {
       );
       this.objects = this.objectService.updateLife(this.objects);*/
       this.drawObjects();
+      this.spawnFood();
     }, this.timer);
   }
 
@@ -103,5 +110,25 @@ export class BasicEvolutionComponent {
       context.fillStyle = object.color;
       context.fill();
     }
+  }
+
+  private spawnFood(): void {
+    const context = this.lifeCanvas.nativeElement.getContext('2d')!;
+    const width = this.lifeCanvas.nativeElement.clientWidth;
+    const height = this.lifeCanvas.nativeElement.clientHeight;
+
+    context.fillStyle = '#ff0000';
+
+    for (let i = 0; i < this.foodAmount; i++) {
+      context.beginPath();
+      context.fillRect(
+        this.evolvingObjectService.getRandomIntInclusive(20, width - 20),
+        this.evolvingObjectService.getRandomIntInclusive(20, height - 20),
+        5,
+        5
+      );
+    }
+
+    context.stroke();
   }
 }

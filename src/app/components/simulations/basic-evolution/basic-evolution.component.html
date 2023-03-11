@@ -30,6 +30,15 @@
     PAUSE
   </button>
 
+  <button
+    mat-raised-button
+    color="accent"
+    (click)="reset()"
+    [disabled]="!objects || objects.length === 0"
+  >
+    RESET
+  </button>
+
   <div class="break"></div>
 
   <mat-slider
@@ -42,4 +51,18 @@
   >
     <input matSliderThumb (input)="timerChange($event)" [value]="timer" />
   </mat-slider>
+
+  <div class="break"></div>
+
+  <mat-form-field class="example-full-width">
+    <mat-label>Food amount</mat-label>
+    <input
+      matInput
+      type="number"
+      placeholder="10"
+      min="1"
+      max="1000"
+      [(ngModel)]="foodAmount"
+    />
+  </mat-form-field>
 </div>
