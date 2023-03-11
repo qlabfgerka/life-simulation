@@ -6,11 +6,11 @@ import { ObjectService } from 'src/app/shared/services/object/object.service';
 import { ObjectsDialogComponent } from '../../../shared/dialogs/objects-dialog/objects-dialog.component';
 
 @Component({
-  selector: 'app-life-simulation',
-  templateUrl: './life-simulation.component.html',
-  styleUrls: ['./life-simulation.component.scss'],
+  selector: 'app-population-growth',
+  templateUrl: './population-growth.component.html',
+  styleUrls: ['./population-growth.component.scss'],
 })
-export class LifeSimulationComponent {
+export class PopulationGrowthComponent {
   @ViewChild('lifeCanvas', { static: false })
   private lifeCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartCanvas', { static: false })

@@ -6,8 +6,8 @@ const routes: Routes = [
     path: ``,
     loadChildren: () =>
       import(
-        './components/simulations/life-simulation/life-simulation.module'
-      ).then((m) => m.LifeSimulationModule),
+        './components/simulations/population-growth/population-growth.module'
+      ).then((m) => m.PopulationGrowthModule),
   },
 ];
 
