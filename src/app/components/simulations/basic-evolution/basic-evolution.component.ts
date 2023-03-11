@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { EvolvingObjectsDialogComponent } from 'src/app/shared/dialogs/evolving-objects-dialog/evolving-objects-dialog.component';
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
+import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { EvolvingObjectService } from 'src/app/shared/services/evolving-object/evolving-object.service';
 
 @Component({
@@ -14,6 +15,7 @@ export class BasicEvolutionComponent {
   private lifeCanvas!: ElementRef<HTMLCanvasElement>;
 
   public objects!: EvolvingObjectDTO[];
+  public food!: FoodDTO[];
   public animationInterval!: NodeJS.Timer;
   public paused: boolean = false;
   public timer: number = 100;
@@ -75,6 +77,8 @@ export class BasicEvolutionComponent {
       this.lifeCanvas.nativeElement.clientHeight
     );
 
+    this.food = [];
+
     this.drawObjects();
     this.spawnFood();
   }
@@ -117,16 +121,18 @@ export class BasicEvolutionComponent {
     const width = this.lifeCanvas.nativeElement.clientWidth;
     const height = this.lifeCanvas.nativeElement.clientHeight;
 
+    let x: number;
+    let y: number;
+
     context.fillStyle = '#ff0000';
 
     for (let i = 0; i < this.foodAmount; i++) {
+      x = this.evolvingObjectService.getRandomIntInclusive(20, width - 20);
+      y = this.evolvingObjectService.getRandomIntInclusive(20, height - 20);
+
+      this.food.push(new FoodDTO(1, x, y, 5, 5));
       context.beginPath();
-      context.fillRect(
-        this.evolvingObjectService.getRandomIntInclusive(20, width - 20),
-        this.evolvingObjectService.getRandomIntInclusive(20, height - 20),
-        5,
-        5
-      );
+      context.fillRect(x, y, 5, 5);
     }
 
     context.stroke();
