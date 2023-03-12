@@ -1,7 +1,10 @@
 <div class="space-between">
   <div class="box-container" #frame></div>
   <div class="box-container">
-    <canvas #chartCanvas class="canvas"></canvas>
+    <bar-chart [chartData]="populationData"></bar-chart>
+    <bar-chart [chartData]="velocityData"></bar-chart>
+    <bar-chart [chartData]="radiusData"></bar-chart>
+    <bar-chart [chartData]="percepionData"></bar-chart>
   </div>
 </div>
 

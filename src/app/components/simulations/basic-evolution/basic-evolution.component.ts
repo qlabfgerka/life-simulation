@@ -1,6 +1,8 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { ChartDataset } from 'chart.js';
 import { EvolvingObjectsDialogComponent } from 'src/app/shared/dialogs/evolving-objects-dialog/evolving-objects-dialog.component';
+import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { EvolvingObjectService } from 'src/app/shared/services/evolving-object/evolving-object.service';
@@ -20,6 +22,17 @@ export class BasicEvolutionComponent {
   public foodAmount: number = 50;
   public foodSize: number = 10;
   public size: number = 250;
+
+  public populationData!: ChartDTO;
+  public velocityData!: ChartDTO;
+  public radiusData!: ChartDTO;
+
+  public percepionData!: ChartDTO;
+  private labels: Array<number> = [];
+  private populationDataset: Array<ChartDataset> = [];
+  private velocityDataset: Array<ChartDataset> = [];
+  private radiusDataset: Array<ChartDataset> = [];
+  private perceptionDataset: Array<ChartDataset> = [];
 
   private scene!: THREE.Scene;
   private renderer!: THREE.WebGLRenderer;
@@ -74,8 +87,14 @@ export class BasicEvolutionComponent {
     this.initRenderer();
     this.initCamera();
 
+    this.populationDataset = [];
+    this.velocityDataset = [];
+    this.radiusDataset = [];
+    this.perceptionDataset = [];
     this.scene = new THREE.Scene();
     this.food = [];
+    this.labels = [1];
+    this.prepareDatasets();
 
     this.drawObjects();
     this.spawnFood();
@@ -168,6 +187,8 @@ export class BasicEvolutionComponent {
     );
 
     if (generationFinished) {
+      this.labels.push(this.labels[this.labels.length - 1] + 1);
+      this.labels = [...this.labels];
       this.scene.clear();
       this.removeFood();
       this.objects = this.evolvingObjectService.newGeneration(
@@ -176,6 +197,7 @@ export class BasicEvolutionComponent {
       );
       this.drawObjects();
       this.spawnFood();
+      this.prepareDatasets();
     } else {
       this.evolvingObjectService.updatePositions(
         this.objects,
@@ -194,5 +216,95 @@ export class BasicEvolutionComponent {
     }
 
     this.food = [];
+  }
+
+  private prepareDatasets(): void {
+    this.populationData = this.preparePopulationDataset(this.populationDataset);
+    this.velocityData = this.prepareDataset(this.velocityDataset, 'velocity');
+    this.radiusData = this.prepareDataset(this.radiusDataset, 'radius');
+    this.percepionData = this.prepareDataset(
+      this.perceptionDataset,
+      'perception'
+    );
+  }
+
+  private prepareDataset(
+    datasets: Array<ChartDataset>,
+    type: string
+  ): ChartDTO {
+    const dataset = datasets[0];
+
+    if (!dataset) {
+      datasets.push({
+        label: type,
+        borderColor: 'red',
+        data: [this.getData(type)],
+      });
+    } else {
+      dataset.data.push(this.getData(type));
+    }
+
+    return new ChartDTO(this.labels, datasets, type);
+  }
+
+  private preparePopulationDataset(datasets: Array<ChartDataset>): ChartDTO {
+    const colors = [
+      ...new Set(this.objects.map((object: EvolvingObjectDTO) => object.color)),
+    ];
+    let objects: EvolvingObjectDTO[];
+    let dataset: ChartDataset;
+
+    for (const color of colors) {
+      objects = this.objects.filter(
+        (object: EvolvingObjectDTO) => object.color === color
+      );
+      dataset = datasets.find(
+        (dataset: ChartDataset) => dataset.label === color
+      )!;
+
+      if (!dataset) {
+        dataset = {
+          label: color,
+          borderColor: objects[0].color,
+          data: new Array(this.labels[this.labels.length - 1] - 1).fill(0),
+        };
+        dataset.data.push(objects.length);
+        datasets.push(dataset);
+      } else {
+        dataset.data.push(objects.length);
+      }
+    }
+
+    for (const dataset of datasets) {
+      if (dataset.data.length !== this.labels.length) dataset.data.push(0);
+    }
+
+    return new ChartDTO(this.labels, datasets, 'population');
+  }
+
+  private getData(type: string): number {
+    let array: Array<number>;
+    switch (type) {
+      case 'velocity':
+        array = this.objects.map(
+          (object: EvolvingObjectDTO) => object.velocity
+        );
+        break;
+      case 'radius':
+        array = this.objects.map((object: EvolvingObjectDTO) => object.radius);
+        break;
+      case 'perception':
+        array = this.objects.map(
+          (object: EvolvingObjectDTO) => object.perception
+        );
+        break;
+      default:
+        array = this.objects.map(
+          (object: EvolvingObjectDTO) => object.velocity
+        );
+        break;
+    }
+
+    return array.reduce((a, b) => a + b) / array.length;
   }
 }

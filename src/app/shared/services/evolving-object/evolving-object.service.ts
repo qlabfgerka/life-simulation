@@ -61,6 +61,16 @@ export class EvolvingObjectService {
       //If object is safe, don't decrease the energy
       if (objects[i].safe) continue;
 
+      //Decrease the energy
+      objects[i].energy -=
+        Math.pow(objects[i].radius, 3) * Math.pow(objects[i].velocity, 2) +
+        objects[i].perception;
+
+      if (objects[i].energy < 0) {
+        toSplice.push(i);
+        continue;
+      }
+
       moved = false;
 
       //Check for nearby food and move to it
@@ -82,15 +92,6 @@ export class EvolvingObjectService {
 
       //If object is safe, don't decrease the energy
       if (objects[i].safe) continue;
-
-      //Decrease the energy
-      objects[i].energy -=
-        Math.pow(objects[i].radius, 3) * Math.pow(objects[i].velocity, 2) +
-        objects[i].perception;
-
-      if (objects[i].energy > 0) continue;
-
-      toSplice.push(i);
     }
 
     toSplice = [...new Set(toSplice)];
@@ -229,8 +230,6 @@ export class EvolvingObjectService {
   private moveToBase(object: EvolvingObjectDTO, size: number): void {
     const direction = this.getDirectionToClosestEdge(object, size);
 
-    //if (distance > object.radius / 2) {
-    console.log(direction);
     object.mesh.position.add(direction.multiplyScalar(object.velocity));
     object.x = object.mesh.position.x;
     object.y = object.mesh.position.y;
