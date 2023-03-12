@@ -168,13 +168,14 @@ export class BasicEvolutionComponent {
     );
 
     if (generationFinished) {
-      console.log(JSON.parse(JSON.stringify(this.objects)));
       this.scene.clear();
       this.removeFood();
-      this.objects = this.evolvingObjectService.newGeneration(this.objects);
+      this.objects = this.evolvingObjectService.newGeneration(
+        this.objects,
+        this.size
+      );
       this.drawObjects();
       this.spawnFood();
-      console.log(JSON.parse(JSON.stringify(this.objects)));
     } else {
       this.evolvingObjectService.updatePositions(
         this.objects,

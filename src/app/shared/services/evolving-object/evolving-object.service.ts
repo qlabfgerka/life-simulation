@@ -55,6 +55,7 @@ export class EvolvingObjectService {
     size: number
   ): void {
     let moved: boolean;
+    let toSplice: Array<number> = [];
 
     for (let i = objects.length - 1; i >= 0; i--) {
       //If object is safe, don't decrease the energy
@@ -69,14 +70,14 @@ export class EvolvingObjectService {
       //Check if there are big objects nearby
       //or if it can consume a smaller object
       if (objects[i].foodFound < 2)
-        moved = this.checkForObjects(objects, objects[i], scene, i);
+        moved = this.checkForObjects(objects, objects[i], toSplice, i);
 
       //Object has already moved, no need to move it again
       if (moved) continue;
 
       //If object has not found food, move it randomly
       //If object has found food, move it towards the safe area
-      if (objects[i].foodFound === 0) this.moveRandom(objects[i], size);
+      if (objects[i].foodFound < 2) this.moveRandom(objects[i], size);
       else this.moveToBase(objects[i], size);
 
       //If object is safe, don't decrease the energy
@@ -89,13 +90,22 @@ export class EvolvingObjectService {
 
       if (objects[i].energy > 0) continue;
 
+      toSplice.push(i);
+    }
+
+    toSplice = [...new Set(toSplice)];
+    toSplice = toSplice.sort((a, b) => b - a);
+    for (const index of toSplice) {
       // Kill the object, if it has depleted it's energy
-      scene.remove(objects[i].mesh);
-      objects.splice(i, 1);
+      scene.remove(objects[index].mesh);
+      objects.splice(index, 1);
     }
   }
 
-  public newGeneration(objects: EvolvingObjectDTO[]): EvolvingObjectDTO[] {
+  public newGeneration(
+    objects: EvolvingObjectDTO[],
+    size: number
+  ): EvolvingObjectDTO[] {
     const newborns: EvolvingObjectDTO[] = [];
     const color: string = '#000000'.replace(/0/g, function () {
       return (~~(Math.random() * 16)).toString(16);
@@ -105,21 +115,22 @@ export class EvolvingObjectService {
     let currentTypeId: number = Math.max(
       ...objects.map((object: EvolvingObjectDTO) => object.typeId)
     );
+    let newborn: EvolvingObjectDTO;
 
     for (const object of objects) {
       if (object.foodFound >= 2) {
         mutate = Math.random() < 0.1;
         factor = Math.random() < 0.5 ? 2 : 0.5;
-        newborns.push(
-          new EvolvingObjectDTO(
-            color,
-            ++currentTypeId,
-            object.initialEnergy,
-            mutate ? object.radius : object.radius * factor,
-            mutate ? object.velocity : object.velocity * factor,
-            mutate ? object.perception : object.perception * factor
-          )
+        newborn = new EvolvingObjectDTO(
+          color,
+          ++currentTypeId,
+          object.initialEnergy,
+          mutate ? object.radius : object.radius * factor,
+          mutate ? object.velocity : object.velocity * factor,
+          mutate ? object.perception : object.perception * factor
         );
+        this.initObject(newborn, size);
+        newborns.push(newborn);
       }
 
       object.safe = false;
@@ -167,7 +178,7 @@ export class EvolvingObjectService {
   private checkForObjects(
     objects: EvolvingObjectDTO[],
     object: EvolvingObjectDTO,
-    scene: THREE.Scene,
+    toSplice: Array<number>,
     index: number
   ): boolean {
     let sphere1: THREE.Sphere;
@@ -192,8 +203,7 @@ export class EvolvingObjectService {
 
         object.radius += objects[j].radius * 0.2;
 
-        scene.remove(objects[j].mesh);
-        objects.splice(j, 1);
+        toSplice.push(j);
       }
     }
 
@@ -217,12 +227,10 @@ export class EvolvingObjectService {
   }
 
   private moveToBase(object: EvolvingObjectDTO, size: number): void {
-    const direction = this.getDirectionToClosestEdge(
-      object.mesh.position,
-      size
-    );
+    const direction = this.getDirectionToClosestEdge(object, size);
 
     //if (distance > object.radius / 2) {
+    console.log(direction);
     object.mesh.position.add(direction.multiplyScalar(object.velocity));
     object.x = object.mesh.position.x;
     object.y = object.mesh.position.y;
@@ -279,38 +287,34 @@ export class EvolvingObjectService {
   }
 
   private getDirectionToClosestEdge(
-    meshPosition: THREE.Vector3,
+    object: EvolvingObjectDTO,
     size: number
   ): THREE.Vector3 {
-    let topLeft = -size;
-    let hw = 2 * size;
-    const closestPoint = new THREE.Vector3(
-      Math.max(topLeft, Math.min(meshPosition.x, topLeft + hw)),
-      Math.max(topLeft, Math.min(meshPosition.y, topLeft + hw)),
-      meshPosition.z
+    const spherePosition = object.mesh.position.clone();
+
+    // Calculate the distance between the sphere's position and the edges of the rectangle
+    const distanceToLeftEdge = spherePosition.x + size;
+    const distanceToRightEdge = size - spherePosition.x;
+    const distanceToTopEdge = size - spherePosition.y;
+    const distanceToBottomEdge = spherePosition.y + size;
+
+    // Determine the closest edge
+    const minDistance = Math.min(
+      distanceToLeftEdge,
+      distanceToRightEdge,
+      distanceToTopEdge,
+      distanceToBottomEdge
     );
 
-    // Determine which edge the closest point is on
-    const rectCenter = new THREE.Vector3(topLeft + hw / 2, topLeft + hw / 2, 0);
-    const dx = closestPoint.x - rectCenter.x;
-    const dy = closestPoint.y - rectCenter.y;
-    const slope = dy / dx;
-
-    let edgePoint: THREE.Vector3;
-
-    if (slope >= -1 && slope <= 1) {
-      // Closest point is on left or right edge
-      const edgeX = dx >= 0 ? topLeft + hw : topLeft;
-      edgePoint = new THREE.Vector3(edgeX, closestPoint.y, closestPoint.z);
+    // Return the direction to the closest point on the edge
+    if (minDistance === distanceToLeftEdge) {
+      return new THREE.Vector3(-1, 0, 0);
+    } else if (minDistance === distanceToRightEdge) {
+      return new THREE.Vector3(1, 0, 0);
+    } else if (minDistance === distanceToTopEdge) {
+      return new THREE.Vector3(0, 1, 0);
     } else {
-      // Closest point is on top or bottom edge
-      const edgeY = dy >= 0 ? topLeft + hw : topLeft;
-      edgePoint = new THREE.Vector3(closestPoint.x, edgeY, closestPoint.z);
+      return new THREE.Vector3(0, -1, 0);
     }
-
-    // Calculate the direction to the closest point
-    const direction = edgePoint.clone().sub(meshPosition).normalize();
-
-    return direction;
   }
 }
