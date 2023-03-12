@@ -24,7 +24,9 @@ export class EvolvingObjectService {
     perception: number
   ): EvolvingObjectDTO[] {
     const objects: EvolvingObjectDTO[] = new Array<EvolvingObjectDTO>();
-    const color: string = '#' + ((Math.random() * 0xffffff) << 0).toString(16);
+    const color: string = '#000000'.replace(/0/g, function () {
+      return (~~(Math.random() * 16)).toString(16);
+    });
 
     for (let i = 0; i < amount; i++) {
       objects.push(
@@ -55,70 +57,78 @@ export class EvolvingObjectService {
     let moved: boolean;
 
     for (let i = objects.length - 1; i >= 0; i--) {
+      //If object is safe, don't decrease the energy
+      if (objects[i].safe) continue;
+
       moved = false;
 
       //Check for nearby food and move to it
-      moved = this.checkForFood(food, objects[i], scene);
+      if (objects[i].foodFound < 2)
+        moved = this.checkForFood(food, objects[i], scene);
 
-      // Check if there are big objects nearby
-      // or if it can consume a smaller object
-      moved = this.checkForObjects(objects, objects[i], scene, i);
+      //Check if there are big objects nearby
+      //or if it can consume a smaller object
+      if (objects[i].foodFound < 2)
+        moved = this.checkForObjects(objects, objects[i], scene, i);
 
-      //Move randomly if no food found or if not running away
+      //Object has already moved, no need to move it again
       if (moved) continue;
 
-      this.moveRandom(objects[i], size);
+      //If object has not found food, move it randomly
+      //If object has found food, move it towards the safe area
+      if (objects[i].foodFound === 0) this.moveRandom(objects[i], size);
+      else this.moveToBase(objects[i], size);
 
+      //If object is safe, don't decrease the energy
+      if (objects[i].safe) continue;
+
+      //Decrease the energy
       objects[i].energy -=
         Math.pow(objects[i].radius, 3) * Math.pow(objects[i].velocity, 2) +
         objects[i].perception;
 
       if (objects[i].energy > 0) continue;
 
+      // Kill the object, if it has depleted it's energy
       scene.remove(objects[i].mesh);
       objects.splice(i, 1);
     }
   }
 
-  /*public updateLife(objects: ObjectDTO[]): ObjectDTO[] {
-    const newborns: ObjectDTO[] = new Array<ObjectDTO>();
-    const objectTypes = [
-      ...new Set(objects.map((object: ObjectDTO) => object.typeId)),
-    ];
-    let popSizes: { [key: string]: number } = {};
+  public newGeneration(objects: EvolvingObjectDTO[]): EvolvingObjectDTO[] {
+    const newborns: EvolvingObjectDTO[] = [];
+    const color: string = '#000000'.replace(/0/g, function () {
+      return (~~(Math.random() * 16)).toString(16);
+    });
+    let mutate: boolean;
+    let factor: number;
+    let currentTypeId: number = Math.max(
+      ...objects.map((object: EvolvingObjectDTO) => object.typeId)
+    );
 
-    for (const typeId of objectTypes) {
-      popSizes[typeId] = objects.filter(
-        (object: ObjectDTO) => object.typeId === typeId
-      ).length;
-    }
-
-    for (let i = objects.length - 1; i >= 0; i--) {
-      const randomLife = Math.random();
-      const randomDeath = Math.random();
-      const popSize = popSizes[objects[i].typeId];
-
-      if (randomLife < objects[i].spawnRate) {
+    for (const object of objects) {
+      if (object.foodFound >= 2) {
+        mutate = Math.random() < 0.1;
+        factor = Math.random() < 0.5 ? 2 : 0.5;
         newborns.push(
-          new ObjectDTO(
-            objects[i].color,
-            objects[i].typeId,
-            objects[i].dieRate,
-            objects[i].spawnRate,
-            objects[i].constant
+          new EvolvingObjectDTO(
+            color,
+            ++currentTypeId,
+            object.initialEnergy,
+            mutate ? object.radius : object.radius * factor,
+            mutate ? object.velocity : object.velocity * factor,
+            mutate ? object.perception : object.perception * factor
           )
         );
       }
 
-      if (randomDeath < objects[i].dieRate + objects[i].constant * popSize) {
-        objects.splice(i, 1);
-      }
+      object.safe = false;
+      object.foodFound = 0;
+      object.energy = object.initialEnergy;
     }
 
-    objects = objects.concat(newborns);
-
-    return objects;
-  }*/
+    return objects.concat(newborns);
+  }
 
   private checkForFood(
     food: FoodDTO[],
@@ -138,6 +148,7 @@ export class EvolvingObjectService {
       ) {
         moved = true;
         if (this.moveToFood(object, food[j])) {
+          ++object.foodFound;
           object.radius += food[j].value;
           object.mesh.geometry = new THREE.SphereGeometry(
             object.radius,
@@ -147,7 +158,6 @@ export class EvolvingObjectService {
           scene.remove(food[j].mesh);
           food.splice(j, 1);
         }
-        break;
       }
     }
 
@@ -206,6 +216,20 @@ export class EvolvingObjectService {
     object.mesh.position.y = object.y;
   }
 
+  private moveToBase(object: EvolvingObjectDTO, size: number): void {
+    const direction = this.getDirectionToClosestEdge(
+      object.mesh.position,
+      size
+    );
+
+    //if (distance > object.radius / 2) {
+    object.mesh.position.add(direction.multiplyScalar(object.velocity));
+    object.x = object.mesh.position.x;
+    object.y = object.mesh.position.y;
+
+    if (this.checkIfSafe(object, size)) object.safe = true;
+  }
+
   private moveToFood(object: EvolvingObjectDTO, food: FoodDTO): boolean {
     const direction = new THREE.Vector3()
       .subVectors(food.mesh.position, object.mesh.position)
@@ -245,5 +269,48 @@ export class EvolvingObjectService {
       if (Math.random() < 0.5) object.y = -size + radius;
       else object.y = size - radius;
     }
+  }
+
+  private checkIfSafe(object: EvolvingObjectDTO, size: number): boolean {
+    const radius: number = object.radius / 2;
+    if (object.x < -size + radius || object.x > size - radius) return true;
+    if (object.y < -size + radius || object.y > size - radius) return true;
+    return false;
+  }
+
+  private getDirectionToClosestEdge(
+    meshPosition: THREE.Vector3,
+    size: number
+  ): THREE.Vector3 {
+    let topLeft = -size;
+    let hw = 2 * size;
+    const closestPoint = new THREE.Vector3(
+      Math.max(topLeft, Math.min(meshPosition.x, topLeft + hw)),
+      Math.max(topLeft, Math.min(meshPosition.y, topLeft + hw)),
+      meshPosition.z
+    );
+
+    // Determine which edge the closest point is on
+    const rectCenter = new THREE.Vector3(topLeft + hw / 2, topLeft + hw / 2, 0);
+    const dx = closestPoint.x - rectCenter.x;
+    const dy = closestPoint.y - rectCenter.y;
+    const slope = dy / dx;
+
+    let edgePoint: THREE.Vector3;
+
+    if (slope >= -1 && slope <= 1) {
+      // Closest point is on left or right edge
+      const edgeX = dx >= 0 ? topLeft + hw : topLeft;
+      edgePoint = new THREE.Vector3(edgeX, closestPoint.y, closestPoint.z);
+    } else {
+      // Closest point is on top or bottom edge
+      const edgeY = dy >= 0 ? topLeft + hw : topLeft;
+      edgePoint = new THREE.Vector3(closestPoint.x, edgeY, closestPoint.z);
+    }
+
+    // Calculate the direction to the closest point
+    const direction = edgePoint.clone().sub(meshPosition).normalize();
+
+    return direction;
   }
 }

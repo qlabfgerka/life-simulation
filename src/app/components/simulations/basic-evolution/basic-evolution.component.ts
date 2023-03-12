@@ -17,7 +17,7 @@ export class BasicEvolutionComponent {
   public objects!: EvolvingObjectDTO[];
   public food!: FoodDTO[];
   public paused: boolean = true;
-  public foodAmount: number = 10;
+  public foodAmount: number = 50;
   public foodSize: number = 10;
   public size: number = 250;
 
@@ -64,6 +64,7 @@ export class BasicEvolutionComponent {
 
   public reset(): void {
     if (this.id) cancelAnimationFrame(this.id);
+    if (!this.objects || this.objects.length === 0) return;
     this.paused = true;
 
     this.frame.nativeElement.innerHTML = '';
@@ -151,32 +152,46 @@ export class BasicEvolutionComponent {
       mesh.position.x = x;
       mesh.position.y = y;
 
-      this.food.push(
-        new FoodDTO(
-          this.evolvingObjectService.getRandomIntInclusive(1, 5),
-          x,
-          y,
-          5,
-          5,
-          mesh
-        )
-      );
+      this.food.push(new FoodDTO(0.5, x, y, 5, 5, mesh));
       this.scene.add(mesh);
     }
   }
 
   private animate() {
+    if (this.objects && this.objects.length === 0) this.pause();
     if (this.paused) return;
 
     this.id = requestAnimationFrame(() => this.animate());
 
-    this.evolvingObjectService.updatePositions(
-      this.objects,
-      this.food,
-      this.scene,
-      this.size
+    let generationFinished: boolean = this.objects.every(
+      (object: EvolvingObjectDTO) => object.safe
     );
 
+    if (generationFinished) {
+      console.log(JSON.parse(JSON.stringify(this.objects)));
+      this.scene.clear();
+      this.removeFood();
+      this.objects = this.evolvingObjectService.newGeneration(this.objects);
+      this.drawObjects();
+      this.spawnFood();
+      console.log(JSON.parse(JSON.stringify(this.objects)));
+    } else {
+      this.evolvingObjectService.updatePositions(
+        this.objects,
+        this.food,
+        this.scene,
+        this.size
+      );
+    }
+
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private removeFood(): void {
+    for (const food of this.food) {
+      this.scene.remove(food.mesh);
+    }
+
+    this.food = [];
   }
 }
