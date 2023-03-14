@@ -9,6 +9,8 @@ export class ObjectDTO {
   constant: number;
   x: number;
   y: number;
+  radius: number;
+  mesh: THREE.Mesh;
 
   /**
    *
@@ -18,7 +20,8 @@ export class ObjectDTO {
     typeId: number,
     dieRate: number,
     spawnRate: number,
-    constant: number
+    constant: number,
+    radius: number = 5
   ) {
     this.id = nanoid();
     this.typeId = typeId;
@@ -28,5 +31,7 @@ export class ObjectDTO {
     this.constant = constant;
     this.x = 0;
     this.y = 0;
+    this.radius = radius;
+    this.mesh = null!;
   }
 }

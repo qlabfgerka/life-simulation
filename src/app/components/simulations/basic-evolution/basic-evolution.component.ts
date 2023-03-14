@@ -5,6 +5,7 @@ import { EvolvingObjectsDialogComponent } from 'src/app/shared/dialogs/evolving-
 import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
+import { CommonService } from 'src/app/shared/services/common/common.service';
 import { EvolvingObjectService } from 'src/app/shared/services/evolving-object/evolving-object.service';
 import { ThreeService } from 'src/app/shared/services/three/three.service';
 import * as THREE from 'three';
@@ -47,6 +48,7 @@ export class BasicEvolutionComponent {
 
   constructor(
     private readonly threeService: ThreeService,
+    private readonly commonService: CommonService,
     private readonly evolvingObjectService: EvolvingObjectService,
     private readonly dialog: MatDialog
   ) {}
@@ -136,11 +138,11 @@ export class BasicEvolutionComponent {
     const sizeChunk = this.size / 4;
 
     for (let i = 0; i < this.foodAmount; i++) {
-      x = this.evolvingObjectService.getRandomIntInclusive(
+      x = this.commonService.getRandomIntInclusive(
         -this.size + sizeChunk,
         this.size - sizeChunk
       );
-      y = this.evolvingObjectService.getRandomIntInclusive(
+      y = this.commonService.getRandomIntInclusive(
         -this.size + sizeChunk,
         this.size - sizeChunk
       );

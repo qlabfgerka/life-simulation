@@ -10,7 +10,7 @@
     mat-raised-button
     color="accent"
     (click)="step()"
-    [disabled]="!objects || objects.length === 0"
+    [disabled]="!paused || !objects || objects.length === 0"
   >
     STEP
   </button>
@@ -28,43 +28,48 @@
     mat-raised-button
     color="accent"
     (click)="pause()"
-    [disabled]="paused"
+    [disabled]="paused || !objects || objects.length === 0"
   >
     PAUSE
   </button>
 
-  <button
-    mat-raised-button
-    color="accent"
-    (click)="reset()"
-    [disabled]="!objects || objects.length === 0"
-  >
-    RESET
-  </button>
+  <button mat-raised-button color="accent" (click)="reset()">RESET</button>
 
   <div class="break"></div>
 
   <mat-form-field class="example-full-width" style="margin-right: 1rem">
-    <mat-label>Food amount</mat-label>
+    <mat-label>Non aggressive objects amount</mat-label>
     <input
       matInput
       type="number"
       placeholder="10"
       min="1"
       max="1000"
-      [(ngModel)]="foodAmount"
+      [(ngModel)]="nonaggressiveAmount"
     />
   </mat-form-field>
 
   <mat-form-field class="example-full-width" style="margin-right: 1rem">
-    <mat-label>Food amount</mat-label>
+    <mat-label>Aggresive objects amount</mat-label>
     <input
       matInput
       type="number"
       placeholder="10"
       min="1"
       max="1000"
-      [(ngModel)]="foodAmount"
+      [(ngModel)]="aggressiveAmount"
+    />
+  </mat-form-field>
+
+  <mat-form-field class="example-full-width" style="margin-right: 1rem">
+    <mat-label>Object size</mat-label>
+    <input
+      matInput
+      type="number"
+      placeholder="10"
+      min="1"
+      max="1000"
+      [(ngModel)]="objectSize"
     />
   </mat-form-field>
 
@@ -105,4 +110,17 @@
       [(ngModel)]="size"
     />
   </mat-form-field>
+
+  <div class="break"></div>
+
+  <div class="flexbox" *ngIf="objects && objects.length > 0">
+    <div
+      class="type-container"
+      *ngFor="let type of types"
+      [style.background-color]="getBackgroundColor(type)"
+      [style.color]="getForegroundColor(type)"
+    >
+      {{ getAggression(type) }}
+    </div>
+  </div>
 </div>

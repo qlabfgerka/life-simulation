@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ObjectDTO } from '../../models/object/object.model';
+import { CommonService } from '../common/common.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ObjectService {
-  constructor() {}
+  constructor(private readonly commonService: CommonService) {}
 
   public generateObjects(
     amount: number,
@@ -40,8 +41,8 @@ export class ObjectService {
     height: number
   ): void {
     for (const object of objects) {
-      object.x += this.getRandomIntInclusive(-2, 2);
-      object.y += this.getRandomIntInclusive(-2, 2);
+      object.x += this.commonService.getRandomIntInclusive(-2, 2);
+      object.y += this.commonService.getRandomIntInclusive(-2, 2);
 
       if (object.x > width || object.x < 0 || object.y > height || object.y < 0)
         this.initObject(object, width, height);
@@ -88,14 +89,8 @@ export class ObjectService {
     return objects;
   }
 
-  private getRandomIntInclusive(min: number, max: number): number {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min);
-  }
-
   private initObject(object: ObjectDTO, width: number, height: number): void {
-    object.x = this.getRandomIntInclusive(10, width - 10);
-    object.y = this.getRandomIntInclusive(10, height - 10);
+    object.x = this.commonService.getRandomIntInclusive(10, width - 10);
+    object.y = this.commonService.getRandomIntInclusive(10, height - 10);
   }
 }
