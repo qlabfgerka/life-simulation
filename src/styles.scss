@@ -9,43 +9,6 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-button {
-  margin-right: 1rem;
-}
-
-.space-between {
-  display: flex;
-  justify-content: space-between;
-  height: 60%;
-  margin: 1rem;
-}
-
-.box-container {
-  width: 48%;
-  height: 100%;
-
-  background-color: #fafafa;
-  border: 2px solid #cccccc;
-}
-
-.flexbox {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-
-  width: 100%;
-}
-
-.break {
-  height: 0;
-  flex-basis: 100%;
-  margin-bottom: 10px;
-}
-
-/* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+/* COMMON STYLES IMPORTS */
+@import "./app/shared/styles/common.styles.scss";
+@import "./app/shared/styles/dialogs.styles.scss";
