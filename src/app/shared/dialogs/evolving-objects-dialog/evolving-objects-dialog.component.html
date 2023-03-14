@@ -1,0 +1,191 @@
+<mat-dialog-content>
+  <div class="scrollable-container">
+    <form [formGroup]="objectsForm" *ngIf="objectsForm">
+      <div formArrayName="objects">
+        <div
+          *ngFor="let objectForm of objectsArray.controls; let i = index"
+          [formGroupName]="i"
+          class="object-box"
+        >
+          <div class="title">Object {{ i + 1 }}</div>
+          <div class="break"></div>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="amount"
+              placeholder="Amount of objects"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('amount')!.errors &&
+                objectsArray.controls[i].get('amount')!.errors!['required']
+              "
+            >
+              Please enter an amount.
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="energy"
+              placeholder="Energy (10000000)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('energy')!.errors &&
+                objectsArray.controls[i].get('energy')!.errors!['required']
+              "
+            >
+              Please enter an energy value.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('energy')!.errors &&
+                objectsArray.controls[i].get('energy')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 10.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('energy')!.errors &&
+                objectsArray.controls[i].get('energy')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 10000000.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="radius"
+              placeholder="Radius (10)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('radius')!.errors &&
+                objectsArray.controls[i].get('radius')!.errors!['required']
+              "
+            >
+              Please enter a radius value.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('radius')!.errors &&
+                objectsArray.controls[i].get('radius')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 5.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('radius')!.errors &&
+                objectsArray.controls[i].get('radius')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 20.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="velocity"
+              placeholder="Velocity (5)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('velocity')!.errors &&
+                objectsArray.controls[i].get('velocity')!.errors!['required']
+              "
+            >
+              Please enter a velocity value.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('velocity')!.errors &&
+                objectsArray.controls[i].get('velocity')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 1.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('velocity')!.errors &&
+                objectsArray.controls[i].get('velocity')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 100.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <input
+              matInput
+              type="number"
+              formControlName="perception"
+              placeholder="Perception (5)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('perception')!.errors &&
+                objectsArray.controls[i].get('perception')!.errors!['required']
+              "
+            >
+              Please enter a perception value.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('perception')!.errors &&
+                objectsArray.controls[i].get('perception')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 1.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('perception')!.errors &&
+                objectsArray.controls[i].get('perception')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 100.</mat-error
+            >
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="static">
+    <button mat-raised-button color="accent" (click)="accept()">ACCEPT</button>
+    <button mat-raised-button (click)="cancel()">CANCEL</button>
+  </div>
+</mat-dialog-content>
