@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { Aggression } from 'src/app/shared/models/aggression/aggression.enum';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { ObjectDTO } from 'src/app/shared/models/object/object.model';
@@ -12,12 +12,12 @@ import * as THREE from 'three';
   templateUrl: './aggresive-simulation.component.html',
   styleUrls: ['./aggresive-simulation.component.scss'],
 })
-export class AggresiveSimulationComponent {
+export class AggresiveSimulationComponent implements AfterViewInit {
   @ViewChild('frame', { static: false }) private readonly frame!: ElementRef;
 
   public objects!: ObjectDTO[];
   public food!: FoodDTO[];
-  public paused: boolean = true;
+  public paused!: boolean;
 
   public aggressiveAmount: number = 5;
   public nonaggressiveAmount: number = 5;
@@ -36,6 +36,12 @@ export class AggresiveSimulationComponent {
     private readonly aggressiveObjectService: AggressiveObjectService,
     private readonly commonService: CommonService
   ) {}
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.reset();
+    }, 0);
+  }
 
   public get types(): number[] {
     return [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))];
@@ -64,9 +70,10 @@ export class AggresiveSimulationComponent {
 
     background =
       background.charAt(0) === '#' ? background.substring(1, 7) : background;
-    const r = parseInt(background.substring(0, 2), 16); // hexToR
-    const g = parseInt(background.substring(2, 4), 16); // hexToG
-    const b = parseInt(background.substring(4, 6), 16); // hexToB
+    const r = parseInt(background.substring(0, 2), 16);
+    const g = parseInt(background.substring(2, 4), 16);
+    const b = parseInt(background.substring(4, 6), 16);
+
     return r * 0.299 + g * 0.587 + b * 0.114 > 186 ? '#000000' : '#ffffff';
   }
 
