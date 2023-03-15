@@ -95,6 +95,11 @@ export class AggresiveSimulationComponent implements AfterViewInit {
 
   public step(): void {
     if (this.currentStep === 0) {
+      this.objects = this.aggressiveObjectService.update(
+        this.objects,
+        this.size,
+        this.scene
+      );
       this.spawnFood();
       this.aggressiveObjectService.assignFood(this.objects, this.food);
     } else if (this.currentStep === 1)
@@ -154,24 +159,10 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   }
 
   private drawObjects(): void {
-    let geometry: THREE.SphereGeometry;
-    let material: THREE.MeshBasicMaterial;
-    let mesh: THREE.Mesh;
-
     for (const object of this.objects) {
-      geometry = new THREE.SphereGeometry(
-        object.radius,
-        object.radius,
-        object.radius
-      );
-      material = new THREE.MeshBasicMaterial({ color: object.color });
+      this.aggressiveObjectService.getMesh(object);
 
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.x = object.x;
-      mesh.position.y = object.y;
-
-      object.mesh = mesh;
-      this.scene.add(mesh);
+      this.scene.add(object.mesh);
     }
   }
 

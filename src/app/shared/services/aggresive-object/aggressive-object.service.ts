@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import * as THREE from 'three';
+import { Aggression } from '../../models/aggression/aggression.enum';
 import { FoodPairDTO } from '../../models/food-pair/food-pair.model';
 import { ObjectDTO } from '../../models/object/object.model';
 import { CommonService } from '../common/common.service';
@@ -34,14 +36,22 @@ export class AggressiveObjectService {
   }
 
   public assignFood(objects: ObjectDTO[], food: FoodPairDTO[]): void {
-    const shuffled = objects.sort(() => Math.random() - 0.5);
+    let shuffled = objects;
     let currentFoodIndex: number = 0;
     let objectIndex: number = 0;
+
+    if (shuffled.length < food.length * 2)
+      shuffled = shuffled.concat(new Array(food.length * 2 - shuffled.length));
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
 
     for (const object of shuffled) {
       if (currentFoodIndex >= food.length) return;
 
-      food[currentFoodIndex].objects[objectIndex] = object.id;
+      if (object) food[currentFoodIndex].objects[objectIndex] = object.id;
 
       objectIndex = (objectIndex + 1) % 2;
       if (objectIndex === 0) ++currentFoodIndex;
@@ -73,9 +83,74 @@ export class AggressiveObjectService {
         second.mesh.position.x = second.x;
         second.mesh.position.y = second.y;
       }
+
+      if (!first && !second) continue;
+
+      if (first && !second) first.foodFound += 2;
+      else if (!first && second) second.foodFound += 2;
+      else if (
+        first.typeId === Aggression.nonaggressive &&
+        second.typeId === Aggression.nonaggressive
+      ) {
+        ++first.foodFound;
+        ++second.foodFound;
+      } else if (
+        first.typeId === Aggression.nonaggressive &&
+        second.typeId === Aggression.aggressive
+      ) {
+        first.foodFound += 0.5;
+        second.foodFound += 1.5;
+      } else if (
+        first.typeId === Aggression.aggressive &&
+        second.typeId === Aggression.nonaggressive
+      ) {
+        first.foodFound += 1.5;
+        second.foodFound += 0.5;
+      }
     }
 
     return objects;
+  }
+
+  public update(
+    objects: ObjectDTO[],
+    size: number,
+    scene: THREE.Scene
+  ): ObjectDTO[] {
+    const newborns: ObjectDTO[] = [];
+    let newborn: ObjectDTO;
+
+    for (let i = objects.length - 1; i >= 0; i--) {
+      if (
+        objects[i].foodFound === 0 ||
+        (objects[i].foodFound === 0.5 && Math.random() > 0.5)
+      ) {
+        console.log('KILL');
+        scene.remove(objects[i].mesh);
+        objects.splice(i);
+      } else if (
+        (objects[i].foodFound === 1.5 && Math.random()) > 0.5 ||
+        objects[i].foodFound === 2
+      ) {
+        newborn = new ObjectDTO(
+          objects[i].color,
+          objects[i].typeId,
+          objects[i].dieRate,
+          objects[i].spawnRate,
+          objects[i].constant,
+          objects[i].radius
+        );
+        this.initObject(newborn, size);
+        this.getMesh(newborn);
+        newborns.push(newborn);
+      }
+
+      if (objects[i]) objects[i].foodFound = 0;
+    }
+
+    for (const newborn of newborns) scene.add(newborn.mesh);
+
+    return objects.concat(newborns);
   }
 
   public removeEaten(food: FoodPairDTO[], scene: THREE.Scene): FoodPairDTO[] {
@@ -108,6 +183,20 @@ export class AggressiveObjectService {
     }
 
     return objects;
+  }
+
+  public getMesh(object: ObjectDTO): void {
+    const geometry = new THREE.SphereGeometry(
+      object.radius,
+      object.radius,
+      object.radius
+    );
+    const material = new THREE.MeshBasicMaterial({ color: object.color });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.position.x = object.x;
+    mesh.position.y = object.y;
+    object.mesh = mesh;
   }
 
   private initObject(object: ObjectDTO, size: number): void {

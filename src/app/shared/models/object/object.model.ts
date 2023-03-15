@@ -11,6 +11,7 @@ export class ObjectDTO {
   y: number;
   radius: number;
   mesh: THREE.Mesh;
+  foodFound: number;
 
   /**
    *
@@ -32,6 +33,7 @@ export class ObjectDTO {
     this.x = 0;
     this.y = 0;
     this.radius = radius;
+    this.foodFound = 0;
     this.mesh = null!;
   }
 }

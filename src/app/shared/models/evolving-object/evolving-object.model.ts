@@ -5,7 +5,6 @@ export class EvolvingObjectDTO extends ObjectDTO {
   energy: number;
   velocity: number;
   perception: number;
-  foodFound: number;
   safe: boolean;
 
   constructor(
@@ -21,7 +20,6 @@ export class EvolvingObjectDTO extends ObjectDTO {
     this.energy = energy;
     this.velocity = velocity;
     this.perception = perception;
-    this.foodFound = 0;
     this.safe = false;
   }
 }
