@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { Aggression } from 'src/app/shared/models/aggression/aggression.enum';
-import { FoodDTO } from 'src/app/shared/models/food/food.model';
+import { FoodPairDTO } from 'src/app/shared/models/food-pair/food-pair.model';
 import { ObjectDTO } from 'src/app/shared/models/object/object.model';
 import { AggressiveObjectService } from 'src/app/shared/services/aggresive-object/aggressive-object.service';
 import { CommonService } from 'src/app/shared/services/common/common.service';
@@ -16,13 +16,13 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   @ViewChild('frame', { static: false }) private readonly frame!: ElementRef;
 
   public objects!: ObjectDTO[];
-  public food!: FoodDTO[];
+  public food!: FoodPairDTO[];
   public paused!: boolean;
 
   public aggressiveAmount: number = 5;
   public nonaggressiveAmount: number = 5;
-  public objectSize: number = 5;
-  public foodAmount: number = 50;
+  public objectSize: number = 10;
+  public foodAmount: number = 20;
   public foodSize: number = 10;
   public size: number = 250;
 
@@ -30,6 +30,12 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   private renderer!: THREE.WebGLRenderer;
   private camera!: THREE.OrthographicCamera;
   private id!: number;
+  private clock!: THREE.Clock;
+  private delta!: number;
+  private interval!: number;
+
+  private currentStep!: number;
+  private readonly stepModulo: number = 5;
 
   constructor(
     private readonly threeService: ThreeService,
@@ -80,14 +86,43 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   public play(): void {
     this.paused = false;
 
-    //this.animate();
+    this.animate();
   }
 
   public pause(): void {
     this.paused = true;
   }
 
-  public step(): void {}
+  public step(): void {
+    if (this.currentStep === 0) {
+      this.spawnFood();
+      this.aggressiveObjectService.assignFood(this.objects, this.food);
+    } else if (this.currentStep === 1)
+      this.objects = this.aggressiveObjectService.moveToFood(
+        this.objects,
+        this.food
+      );
+    else if (this.currentStep === 2)
+      this.food = this.aggressiveObjectService.removeEaten(
+        this.food,
+        this.scene
+      );
+    else if (this.currentStep === 3)
+      this.objects = this.aggressiveObjectService.returnToBase(
+        this.objects,
+        this.size
+      );
+    else if (this.currentStep === 4)
+      this.food = this.aggressiveObjectService.removeFood(
+        this.food,
+        this.scene
+      );
+
+    this.currentStep = (this.currentStep + 1) % this.stepModulo;
+    this.renderer.render(this.scene, this.camera);
+
+    return;
+  }
 
   public reset(): void {
     if (this.id) cancelAnimationFrame(this.id);
@@ -101,11 +136,19 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.renderer = this.threeService.initRenderer(this.frame);
     this.camera = this.threeService.initCamera(this.size);
 
+    this.currentStep = 0;
     this.scene = new THREE.Scene();
     this.food = [];
+    this.clock = new THREE.Clock();
+    this.delta = 0;
+    this.interval = 1;
 
     this.drawObjects();
-    //this.spawnFood();
+    this.spawnFood();
+
+    this.aggressiveObjectService.assignFood(this.objects, this.food);
+
+    this.currentStep = (this.currentStep + 1) % this.stepModulo;
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -154,5 +197,31 @@ export class AggresiveSimulationComponent implements AfterViewInit {
         this.objectSize
       )
     );
+  }
+
+  private spawnFood(): void {
+    let food: FoodPairDTO;
+    for (let i = 0; i < this.foodAmount; i++) {
+      food = new FoodPairDTO(this.size, this.foodSize);
+      this.scene.add(food.food[0].mesh);
+      this.scene.add(food.food[1].mesh);
+
+      this.food.push(food);
+    }
+  }
+
+  private animate(): void {
+    if (this.objects && this.objects.length === 0) this.pause();
+    if (this.paused) return;
+
+    this.id = requestAnimationFrame(() => this.animate());
+
+    this.delta += this.clock.getDelta();
+
+    if (this.delta > this.interval) {
+      this.step();
+
+      this.delta = this.delta % this.interval;
+    }
   }
 }
