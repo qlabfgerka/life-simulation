@@ -16,6 +16,13 @@ const routes: Routes = [
         './components/simulations/basic-evolution/basic-evolution.module'
       ).then((m) => m.BasicEvolutionModule),
   },
+  {
+    path: `aggresive-simulation`,
+    loadChildren: () =>
+      import(
+        './components/simulations/aggresive-simulation/aggresive-simulation.module'
+      ).then((m) => m.AggresiveSimulationModule),
+  },
 ];
 
 @NgModule({

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { CommonHelper } from '../../helpers/common/common.helper';
 import { ObjectDTO } from '../../models/object/object.model';
 
 @Injectable({
@@ -17,9 +18,8 @@ export class ObjectService {
   ): ObjectDTO[] {
     const objects: ObjectDTO[] = new Array<ObjectDTO>();
 
-    for (let i = 0; i < amount; i++) {
+    for (let i = 0; i < amount; i++)
       objects.push(new ObjectDTO(color, typeId, dieRate, spawnRate, constant));
-    }
 
     return objects;
   }
@@ -29,9 +29,7 @@ export class ObjectService {
     width: number,
     height: number
   ): void {
-    for (const object of objects) {
-      this.initObject(object, width, height);
-    }
+    for (const object of objects) this.initObject(object, width, height);
   }
 
   public updatePositions(
@@ -40,8 +38,8 @@ export class ObjectService {
     height: number
   ): void {
     for (const object of objects) {
-      object.x += this.getRandomIntInclusive(-2, 2);
-      object.y += this.getRandomIntInclusive(-2, 2);
+      object.x += CommonHelper.getRandomIntInclusive(-2, 2);
+      object.y += CommonHelper.getRandomIntInclusive(-2, 2);
 
       if (object.x > width || object.x < 0 || object.y > height || object.y < 0)
         this.initObject(object, width, height);
@@ -78,9 +76,8 @@ export class ObjectService {
         );
       }
 
-      if (randomDeath < objects[i].dieRate + objects[i].constant * popSize) {
+      if (randomDeath < objects[i].dieRate + objects[i].constant * popSize)
         objects.splice(i, 1);
-      }
     }
 
     objects = objects.concat(newborns);
@@ -88,14 +85,8 @@ export class ObjectService {
     return objects;
   }
 
-  private getRandomIntInclusive(min: number, max: number): number {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min);
-  }
-
   private initObject(object: ObjectDTO, width: number, height: number): void {
-    object.x = this.getRandomIntInclusive(10, width - 10);
-    object.y = this.getRandomIntInclusive(10, height - 10);
+    object.x = CommonHelper.getRandomIntInclusive(10, width - 10);
+    object.y = CommonHelper.getRandomIntInclusive(10, height - 10);
   }
 }

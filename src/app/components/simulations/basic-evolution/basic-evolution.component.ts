@@ -2,6 +2,8 @@ import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ChartDataset } from 'chart.js';
 import { EvolvingObjectsDialogComponent } from 'src/app/shared/dialogs/evolving-objects-dialog/evolving-objects-dialog.component';
+import { CommonHelper } from 'src/app/shared/helpers/common/common.helper';
+import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
 import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
@@ -84,8 +86,8 @@ export class BasicEvolutionComponent {
 
     this.evolvingObjectService.initializePositions(this.objects, this.size);
 
-    this.initRenderer();
-    this.initCamera();
+    this.renderer = ThreeHelper.initRenderer(this.frame);
+    this.camera = ThreeHelper.initCamera(this.size);
 
     this.populationDataset = [];
     this.velocityDataset = [];
@@ -100,27 +102,6 @@ export class BasicEvolutionComponent {
     this.spawnFood();
 
     this.renderer.render(this.scene, this.camera);
-  }
-
-  private initCamera(): void {
-    this.camera = new THREE.OrthographicCamera(
-      -this.size,
-      this.size,
-      -this.size,
-      this.size
-    );
-    this.camera.position.set(0, 0, 500);
-    this.camera.lookAt(0, 0, 0);
-  }
-
-  private initRenderer(): void {
-    this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(
-      this.frame.nativeElement.offsetWidth,
-      this.frame.nativeElement.offsetHeight
-    );
-    this.renderer.setClearColor(0xfafafa);
-    this.frame.nativeElement.appendChild(this.renderer.domElement);
   }
 
   private drawObjects(): void {
@@ -155,11 +136,11 @@ export class BasicEvolutionComponent {
     const sizeChunk = this.size / 4;
 
     for (let i = 0; i < this.foodAmount; i++) {
-      x = this.evolvingObjectService.getRandomIntInclusive(
+      x = CommonHelper.getRandomIntInclusive(
         -this.size + sizeChunk,
         this.size - sizeChunk
       );
-      y = this.evolvingObjectService.getRandomIntInclusive(
+      y = CommonHelper.getRandomIntInclusive(
         -this.size + sizeChunk,
         this.size - sizeChunk
       );
