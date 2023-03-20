@@ -1,13 +1,8 @@
-import { ElementRef, Injectable } from '@angular/core';
+import { ElementRef } from '@angular/core';
 import * as THREE from 'three';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class ThreeService {
-  constructor() {}
-
-  public initCamera(size: number): THREE.OrthographicCamera {
+export class ThreeHelper {
+  public static initCamera(size: number): THREE.OrthographicCamera {
     const camera = new THREE.OrthographicCamera(-size, size, -size, size);
     camera.position.set(0, 0, 500);
     camera.lookAt(0, 0, 0);
@@ -15,7 +10,7 @@ export class ThreeService {
     return camera;
   }
 
-  public initRenderer(
+  public static initRenderer(
     frame: ElementRef<HTMLCanvasElement>
   ): THREE.WebGLRenderer {
     const renderer = new THREE.WebGLRenderer();

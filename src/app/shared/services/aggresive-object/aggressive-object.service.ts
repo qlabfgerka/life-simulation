@@ -1,31 +1,26 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
+import { CommonHelper } from '../../helpers/common/common.helper';
 import { Aggression } from '../../models/aggression/aggression.enum';
 import { FoodPairDTO } from '../../models/food-pair/food-pair.model';
 import { ObjectDTO } from '../../models/object/object.model';
-import { CommonService } from '../common/common.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AggressiveObjectService {
-  constructor(private readonly commonService: CommonService) {}
+  constructor() {}
 
   public generateObjects(
     amount: number,
     color: string,
     typeId: number,
-    dieRate: number,
-    spawnRate: number,
-    constant: number,
     radius: number
   ): ObjectDTO[] {
     const objects: ObjectDTO[] = new Array<ObjectDTO>();
 
     for (let i = 0; i < amount; i++) {
-      objects.push(
-        new ObjectDTO(color, typeId, dieRate, spawnRate, constant, radius)
-      );
+      objects.push(new ObjectDTO(color, typeId, 0, 0, 0, radius));
     }
 
     return objects;
@@ -36,7 +31,7 @@ export class AggressiveObjectService {
   }
 
   public assignFood(objects: ObjectDTO[], food: FoodPairDTO[]): void {
-    let shuffled = objects;
+    let shuffled = JSON.parse(JSON.stringify(objects));
     let currentFoodIndex: number = 0;
     let objectIndex: number = 0;
 
@@ -116,20 +111,19 @@ export class AggressiveObjectService {
     objects: ObjectDTO[],
     size: number,
     scene: THREE.Scene
-  ): ObjectDTO[] {
+  ): [ObjectDTO[], THREE.Scene] {
     const newborns: ObjectDTO[] = [];
     let newborn: ObjectDTO;
+    let toSplice: Array<number> = [];
 
     for (let i = objects.length - 1; i >= 0; i--) {
       if (
         objects[i].foodFound === 0 ||
         (objects[i].foodFound === 0.5 && Math.random() > 0.5)
       ) {
-        console.log('KILL');
-        scene.remove(objects[i].mesh);
-        objects.splice(i);
+        toSplice.push(i);
       } else if (
-        (objects[i].foodFound === 1.5 && Math.random()) > 0.5 ||
+        (objects[i].foodFound === 1.5 && Math.random() > 0.5) ||
         objects[i].foodFound === 2
       ) {
         newborn = new ObjectDTO(
@@ -148,9 +142,17 @@ export class AggressiveObjectService {
       if (objects[i]) objects[i].foodFound = 0;
     }
 
+    toSplice = [...new Set(toSplice)];
+    toSplice = toSplice.sort((a, b) => b - a);
+    for (const index of toSplice) {
+      // Kill the object, if it has depleted it's energy
+      scene.remove(objects[index].mesh);
+      objects.splice(index, 1);
+    }
+
     for (const newborn of newborns) scene.add(newborn.mesh);
 
-    return objects.concat(newborns);
+    return [objects.concat(newborns), scene];
   }
 
   public removeEaten(food: FoodPairDTO[], scene: THREE.Scene): FoodPairDTO[] {
@@ -202,14 +204,14 @@ export class AggressiveObjectService {
   private initObject(object: ObjectDTO, size: number): void {
     const radius = object.radius / 2;
     if (Math.random() < 0.5) {
-      object.y = this.commonService.getRandomIntInclusive(
+      object.y = CommonHelper.getRandomIntInclusive(
         -size + radius,
         size - radius
       );
       if (Math.random() < 0.5) object.x = -size + radius;
       else object.x = size - radius;
     } else {
-      object.x = this.commonService.getRandomIntInclusive(
+      object.x = CommonHelper.getRandomIntInclusive(
         -size + radius,
         size - radius
       );

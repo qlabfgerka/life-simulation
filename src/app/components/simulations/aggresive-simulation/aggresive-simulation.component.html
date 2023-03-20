@@ -1,7 +1,20 @@
 <div class="space-between">
   <div class="box-container" #frame></div>
   <div class="box-container">
-    <!--<bar-chart [chartData]="populationData"></bar-chart>-->
+    <bar-chart [chartData]="populationData"></bar-chart>
+
+    <div class="flexbox" *ngIf="objects && objects.length > 0">
+      <div
+        class="type-container"
+        *ngFor="let type of types"
+        [style.background-color]="getBackgroundColor(type)"
+        [style.color]="getForegroundColor(type)"
+      >
+        {{ getAggression(type) }}
+        <br />
+        ({{ getAmount(type) }})
+      </div>
+    </div>
   </div>
 </div>
 
@@ -112,15 +125,4 @@
   </mat-form-field>
 
   <div class="break"></div>
-
-  <div class="flexbox" *ngIf="objects && objects.length > 0">
-    <div
-      class="type-container"
-      *ngFor="let type of types"
-      [style.background-color]="getBackgroundColor(type)"
-      [style.color]="getForegroundColor(type)"
-    >
-      {{ getAggression(type) }}
-    </div>
-  </div>
 </div>

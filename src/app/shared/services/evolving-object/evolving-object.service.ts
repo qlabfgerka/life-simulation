@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { EvolvingObjectDTO } from '../../models/evolving-object/evolving-object.model';
 import { FoodDTO } from '../../models/food/food.model';
 import * as THREE from 'three';
-import { CommonService } from '../common/common.service';
+import { CommonHelper } from '../../helpers/common/common.helper';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EvolvingObjectService {
-  constructor(private readonly commonService: CommonService) {}
+  constructor() {}
 
   public generateObjects(
     amount: number,
@@ -19,7 +19,7 @@ export class EvolvingObjectService {
     perception: number
   ): EvolvingObjectDTO[] {
     const objects: EvolvingObjectDTO[] = new Array<EvolvingObjectDTO>();
-    const color: string = this.commonService.getRandomHexColor();
+    const color: string = CommonHelper.getRandomHexColor();
 
     for (let i = 0; i < amount; i++) {
       objects.push(
@@ -101,7 +101,7 @@ export class EvolvingObjectService {
     size: number
   ): EvolvingObjectDTO[] {
     const newborns: EvolvingObjectDTO[] = [];
-    const color: string = this.commonService.getRandomHexColor();
+    const color: string = CommonHelper.getRandomHexColor();
     let mutate: boolean;
     let factor: number;
     let currentTypeId: number = Math.max(
@@ -203,11 +203,11 @@ export class EvolvingObjectService {
   }
 
   private moveRandom(object: EvolvingObjectDTO, size: number): void {
-    object.x += this.commonService.getRandomIntInclusive(
+    object.x += CommonHelper.getRandomIntInclusive(
       -object.radius,
       object.radius
     );
-    object.y += this.commonService.getRandomIntInclusive(
+    object.y += CommonHelper.getRandomIntInclusive(
       -object.radius,
       object.radius
     );
@@ -265,14 +265,14 @@ export class EvolvingObjectService {
   private initObject(object: EvolvingObjectDTO, size: number): void {
     const radius = object.radius / 2;
     if (Math.random() < 0.5) {
-      object.y = this.commonService.getRandomIntInclusive(
+      object.y = CommonHelper.getRandomIntInclusive(
         -size + radius,
         size - radius
       );
       if (Math.random() < 0.5) object.x = -size + radius;
       else object.x = size - radius;
     } else {
-      object.x = this.commonService.getRandomIntInclusive(
+      object.x = CommonHelper.getRandomIntInclusive(
         -size + radius,
         size - radius
       );
@@ -294,13 +294,13 @@ export class EvolvingObjectService {
   ): THREE.Vector3 {
     const spherePosition = object.mesh.position.clone();
 
-    // Calculate the distance between the sphere's position and the edges of the rectangle
+    //Calculate the distance between the sphere's position and the edges of the rectangle
     const distanceToLeftEdge = spherePosition.x + size;
     const distanceToRightEdge = size - spherePosition.x;
     const distanceToTopEdge = size - spherePosition.y;
     const distanceToBottomEdge = spherePosition.y + size;
 
-    // Determine the closest edge
+    //Determine the closest edge
     const minDistance = Math.min(
       distanceToLeftEdge,
       distanceToRightEdge,
@@ -308,7 +308,7 @@ export class EvolvingObjectService {
       distanceToBottomEdge
     );
 
-    // Return the direction to the closest point on the edge
+    //Return the direction to the closest point on the edge
     if (minDistance === distanceToLeftEdge) {
       return new THREE.Vector3(-1, 0, 0);
     } else if (minDistance === distanceToRightEdge) {

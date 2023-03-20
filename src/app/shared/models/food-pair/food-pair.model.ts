@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CommonHelper } from '../../helpers/common/common.helper';
 import { FoodDTO } from '../food/food.model';
 
 export class FoodPairDTO {
@@ -7,8 +8,14 @@ export class FoodPairDTO {
 
   constructor(size: number, foodSize: number) {
     const sizeChunk = size / 4;
-    let x = this.getRandomIntInclusive(-size + sizeChunk, size - sizeChunk);
-    let y = this.getRandomIntInclusive(-size + sizeChunk, size - sizeChunk);
+    let x = CommonHelper.getRandomIntInclusive(
+      -size + sizeChunk,
+      size - sizeChunk
+    );
+    let y = CommonHelper.getRandomIntInclusive(
+      -size + sizeChunk,
+      size - sizeChunk
+    );
 
     const firstFood = new FoodDTO(
       1,
@@ -39,7 +46,7 @@ export class FoodPairDTO {
     width: number
   ): [number, number] {
     let x2: number;
-    let rand: number = this.getRandomIntInclusive(-width, width);
+    let rand: number = CommonHelper.getRandomIntInclusive(-width, width);
 
     if (x > size / 2) x2 = x - width - 5;
     else x2 = x + width + 5;
@@ -60,11 +67,5 @@ export class FoodPairDTO {
     mesh.position.y = y;
 
     return mesh;
-  }
-
-  private getRandomIntInclusive(min: number, max: number): number {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min);
   }
 }

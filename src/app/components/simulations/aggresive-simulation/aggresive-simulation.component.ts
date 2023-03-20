@@ -1,10 +1,12 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { ChartDataset } from 'chart.js';
+import { CommonHelper } from 'src/app/shared/helpers/common/common.helper';
+import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
 import { Aggression } from 'src/app/shared/models/aggression/aggression.enum';
+import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { FoodPairDTO } from 'src/app/shared/models/food-pair/food-pair.model';
 import { ObjectDTO } from 'src/app/shared/models/object/object.model';
 import { AggressiveObjectService } from 'src/app/shared/services/aggresive-object/aggressive-object.service';
-import { CommonService } from 'src/app/shared/services/common/common.service';
-import { ThreeService } from 'src/app/shared/services/three/three.service';
 import * as THREE from 'three';
 
 @Component({
@@ -34,13 +36,15 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   private delta!: number;
   private interval!: number;
 
+  public populationData!: ChartDTO;
+  private populationDataset: Array<ChartDataset> = [];
+  private labels: Array<number> = [];
+
   private currentStep!: number;
   private readonly stepModulo: number = 5;
 
   constructor(
-    private readonly threeService: ThreeService,
-    private readonly aggressiveObjectService: AggressiveObjectService,
-    private readonly commonService: CommonService
+    private readonly aggressiveObjectService: AggressiveObjectService
   ) {}
 
   ngAfterViewInit(): void {
@@ -50,7 +54,9 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   }
 
   public get types(): number[] {
-    return [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))];
+    return [
+      ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
+    ].sort((a, b) => a - b);
   }
 
   public getAggression(type: number): string {
@@ -62,6 +68,11 @@ export class AggresiveSimulationComponent implements AfterViewInit {
       default:
         return '';
     }
+  }
+
+  public getAmount(type: number): number {
+    return this.objects.filter((object: ObjectDTO) => object.typeId === type)
+      .length;
   }
 
   public getBackgroundColor(type: number): string {
@@ -95,13 +106,16 @@ export class AggresiveSimulationComponent implements AfterViewInit {
 
   public step(): void {
     if (this.currentStep === 0) {
-      this.objects = this.aggressiveObjectService.update(
+      [this.objects, this.scene] = this.aggressiveObjectService.update(
         this.objects,
         this.size,
         this.scene
       );
       this.spawnFood();
       this.aggressiveObjectService.assignFood(this.objects, this.food);
+      this.labels.push(this.labels[this.labels.length - 1] + 1);
+      this.labels = [...this.labels];
+      this.populationData = this.prepareDataset();
     } else if (this.currentStep === 1)
       this.objects = this.aggressiveObjectService.moveToFood(
         this.objects,
@@ -138,18 +152,22 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.initObjects();
     this.aggressiveObjectService.initializePositions(this.objects, this.size);
 
-    this.renderer = this.threeService.initRenderer(this.frame);
-    this.camera = this.threeService.initCamera(this.size);
+    this.renderer = ThreeHelper.initRenderer(this.frame);
+    this.camera = ThreeHelper.initCamera(this.size);
 
     this.currentStep = 0;
     this.scene = new THREE.Scene();
     this.food = [];
+    this.labels = [1];
     this.clock = new THREE.Clock();
     this.delta = 0;
     this.interval = 1;
+    this.populationDataset = [];
+    this.populationData = null!;
 
     this.drawObjects();
     this.spawnFood();
+    this.populationData = this.prepareDataset();
 
     this.aggressiveObjectService.assignFood(this.objects, this.food);
 
@@ -169,22 +187,16 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   private initObjects(): void {
     this.objects = this.aggressiveObjectService.generateObjects(
       this.aggressiveAmount,
-      this.commonService.getRandomHexColor(),
+      CommonHelper.getRandomHexColor(),
       Aggression.aggressive,
-      0,
-      0,
-      0,
       this.objectSize
     );
 
     this.objects = this.objects.concat(
       this.aggressiveObjectService.generateObjects(
         this.nonaggressiveAmount,
-        this.commonService.getRandomHexColor(),
+        CommonHelper.getRandomHexColor(),
         Aggression.nonaggressive,
-        0,
-        0,
-        0,
         this.objectSize
       )
     );
@@ -199,6 +211,41 @@ export class AggresiveSimulationComponent implements AfterViewInit {
 
       this.food.push(food);
     }
+  }
+
+  private prepareDataset(): ChartDTO {
+    const typeIds = [
+      ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
+    ];
+    let objects: ObjectDTO[];
+    let dataset: ChartDataset;
+
+    for (const type of typeIds) {
+      objects = this.objects.filter(
+        (object: ObjectDTO) => object.typeId === type
+      );
+      dataset = this.populationDataset.find(
+        (dataset: ChartDataset) => dataset.label === type.toString()
+      )!;
+
+      if (!dataset) {
+        dataset = {
+          label: type.toString(),
+          borderColor: objects[0].color,
+          data: new Array(this.labels[this.labels.length - 1] - 1).fill(0),
+        };
+        dataset.data.push(objects.length);
+        this.populationDataset.push(dataset);
+      } else {
+        dataset.data.push(objects.length);
+      }
+    }
+
+    for (const dataset of this.populationDataset) {
+      if (dataset.data.length !== this.labels.length) dataset.data.push(0);
+    }
+
+    return new ChartDTO(this.labels, this.populationDataset, 'population');
   }
 
   private animate(): void {
