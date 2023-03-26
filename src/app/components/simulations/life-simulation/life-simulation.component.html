@@ -1,0 +1,87 @@
+<div class="center">
+  <div class="box-container" #frame></div>
+</div>
+
+<div class="flexbox">
+  <button mat-raised-button color="accent" (click)="openSettings()">
+    SETTINGS
+  </button>
+
+  <button
+    mat-raised-button
+    color="accent"
+    (click)="step()"
+    [disabled]="!paused || !objects || objects.length === 0"
+  >
+    STEP
+  </button>
+
+  <button
+    mat-raised-button
+    color="accent"
+    (click)="play()"
+    [disabled]="!paused || !objects || objects.length === 0"
+  >
+    PLAY
+  </button>
+
+  <button
+    mat-raised-button
+    color="accent"
+    (click)="pause()"
+    [disabled]="paused || !objects || objects.length === 0"
+  >
+    PAUSE
+  </button>
+
+  <button
+    mat-raised-button
+    color="accent"
+    (click)="reset()"
+    [disabled]="!objects || objects.length === 0"
+  >
+    RESET
+  </button>
+
+  <div class="break"></div>
+
+  <mat-checkbox [(ngModel)]="usePerlinNoise">Perlin noise</mat-checkbox>
+
+  <div class="break"></div>
+
+  <mat-form-field class="example-full-width" style="margin-right: 1rem">
+    <mat-label>Food amount</mat-label>
+    <input
+      matInput
+      type="number"
+      placeholder="10"
+      min="1"
+      max="1000"
+      [(ngModel)]="foodAmount"
+    />
+  </mat-form-field>
+
+  <mat-form-field class="example-full-width" style="margin-right: 1rem">
+    <mat-label>Food size</mat-label>
+    <input
+      matInput
+      type="number"
+      placeholder="10"
+      min="1"
+      max="1000"
+      [(ngModel)]="foodSize"
+    />
+  </mat-form-field>
+
+  <mat-form-field class="example-full-width">
+    <mat-label>World size</mat-label>
+    <input
+      matInput
+      type="number"
+      placeholder="10"
+      min="10"
+      max="1000"
+      [(ngModel)]="size"
+    />
+  </mat-form-field>
+</div>
