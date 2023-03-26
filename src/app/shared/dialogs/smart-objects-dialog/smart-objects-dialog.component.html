@@ -1,0 +1,349 @@
+<mat-dialog-content>
+  <div class="scrollable-container">
+    <form [formGroup]="objectsForm" *ngIf="objectsForm">
+      <div formArrayName="objects">
+        <div
+          *ngFor="let objectForm of objectsArray.controls; let i = index"
+          [formGroupName]="i"
+          class="object-box"
+        >
+          <div class="title">Object {{ i + 1 }}</div>
+          <div class="break"></div>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="amount"
+              placeholder="Amount of objects"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('amount')!.errors &&
+                objectsArray.controls[i].get('amount')!.errors!['required']
+              "
+            >
+              Please enter an amount.
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="hunger"
+              placeholder="Hunger (0.1)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('hunger')!.errors &&
+                objectsArray.controls[i].get('hunger')!.errors!['required']
+              "
+            >
+              Please enter a hunger factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('hunger')!.errors &&
+                objectsArray.controls[i].get('hunger')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('hunger')!.errors &&
+                objectsArray.controls[i].get('hunger')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="thirst"
+              placeholder="Thirst (0.05)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('thirst')!.errors &&
+                objectsArray.controls[i].get('thirst')!.errors!['required']
+              "
+            >
+              Please enter a thirst factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('thirst')!.errors &&
+                objectsArray.controls[i].get('thirst')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('thirst')!.errors &&
+                objectsArray.controls[i].get('thirst')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="reproduction"
+              placeholder="Reproduction (0.001)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('reproduction')!.errors &&
+                objectsArray.controls[i].get('reproduction')!.errors![
+                  'required'
+                ]
+              "
+            >
+              Please enter a reproduction factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('reproduction')!.errors &&
+                objectsArray.controls[i].get('reproduction')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('reproduction')!.errors &&
+                objectsArray.controls[i].get('reproduction')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="age"
+              placeholder="Age (0.001)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('age')!.errors &&
+                objectsArray.controls[i].get('age')!.errors!['required']
+              "
+            >
+              Please enter an age.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('age')!.errors &&
+                objectsArray.controls[i].get('age')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('age')!.errors &&
+                objectsArray.controls[i].get('age')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="perception"
+              placeholder="Perception (0.001)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('perception')!.errors &&
+                objectsArray.controls[i].get('perception')!.errors!['required']
+              "
+            >
+              Please enter a perception factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('perception')!.errors &&
+                objectsArray.controls[i].get('perception')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('perception')!.errors &&
+                objectsArray.controls[i].get('perception')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="velocity"
+              placeholder="Velocity (0.001)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('velocity')!.errors &&
+                objectsArray.controls[i].get('velocity')!.errors!['required']
+              "
+            >
+              Please enter a velocity factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('velocity')!.errors &&
+                objectsArray.controls[i].get('velocity')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('velocity')!.errors &&
+                objectsArray.controls[i].get('velocity')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input
+              matInput
+              type="number"
+              formControlName="radius"
+              placeholder="Radius (0.001)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('radius')!.errors &&
+                objectsArray.controls[i].get('radius')!.errors!['required']
+              "
+            >
+              Please enter a radius.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('radius')!.errors &&
+                objectsArray.controls[i].get('radius')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('radius')!.errors &&
+                objectsArray.controls[i].get('radius')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <input
+              matInput
+              type="number"
+              formControlName="variation"
+              placeholder="Variation (0.001)"
+              (input)="detectNewObject(i)"
+            />
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('variation')!.errors &&
+                objectsArray.controls[i].get('variation')!.errors!['required']
+              "
+            >
+              Please enter a variation factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('variation')!.errors &&
+                objectsArray.controls[i].get('variation')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                objectsArray.controls[i].get('variation')!.errors &&
+                objectsArray.controls[i].get('variation')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-checkbox formControlName="gender" class="example-margin">
+            Male
+          </mat-checkbox>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="static">
+    <button mat-raised-button color="accent" (click)="accept()">ACCEPT</button>
+    <button mat-raised-button (click)="cancel()">CANCEL</button>
+  </div>
+</mat-dialog-content>

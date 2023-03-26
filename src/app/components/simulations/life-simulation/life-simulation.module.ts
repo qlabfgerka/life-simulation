@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { BarChartModule } from 'src/app/shared/charts/bar-chart/bar-chart.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { SmartObjectsDialogModule } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.module';
 
 @NgModule({
   declarations: [LifeSimulationComponent],
@@ -21,6 +22,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatInputModule,
     BarChartModule,
     MatCheckboxModule,
+    SmartObjectsDialogModule,
   ],
 })
 export class LifeSimulationModule {}
