@@ -51,36 +51,15 @@ export class SmartObjectsDialogComponent {
     this.objectsArray.push(
       this.formBuilder.group({
         amount: [amount, [Validators.required]],
-        hunger: [
-          hunger,
-          [Validators.required, Validators.min(0), Validators.max(1)],
-        ],
-        thirst: [
-          thirst,
-          [Validators.required, Validators.min(0), Validators.max(1)],
-        ],
-        reproduction: [
-          reproduction,
-          [Validators.required, Validators.min(0), Validators.max(1)],
-        ],
+        hunger: [hunger, [Validators.required, Validators.min(0), Validators.max(1)]],
+        thirst: [thirst, [Validators.required, Validators.min(0), Validators.max(1)]],
+        reproduction: [reproduction, [Validators.required, Validators.min(0), Validators.max(1)]],
         age: [age, [Validators.required, Validators.min(0), Validators.max(1)]],
-        perception: [
-          perception,
-          [Validators.required, Validators.min(0), Validators.max(1)],
-        ],
+        perception: [perception, [Validators.required, Validators.min(0), Validators.max(1)]],
         gender: [gender, []],
-        velocity: [
-          velocity,
-          [Validators.required, Validators.min(0), Validators.max(1)],
-        ],
-        radius: [
-          radius,
-          [Validators.required, Validators.min(5), Validators.max(20)],
-        ],
-        variation: [
-          variation,
-          [Validators.required, Validators.min(0), Validators.max(1)],
-        ],
+        velocity: [velocity, [Validators.required, Validators.min(0), Validators.max(1)]],
+        radius: [radius, [Validators.required, Validators.min(5), Validators.max(20)]],
+        variation: [variation, [Validators.required, Validators.min(0), Validators.max(1)]],
       })
     );
   }

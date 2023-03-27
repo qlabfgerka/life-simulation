@@ -45,22 +45,10 @@ export class EvolvingObjectsDialogComponent {
     this.objectsArray.push(
       this.formBuilder.group({
         amount: [amount, [Validators.required]],
-        energy: [
-          energy,
-          [Validators.required, Validators.min(10), Validators.max(10000000)],
-        ],
-        radius: [
-          radius,
-          [Validators.required, Validators.min(5), Validators.max(20)],
-        ],
-        velocity: [
-          velocity,
-          [Validators.required, Validators.min(1), Validators.max(100)],
-        ],
-        perception: [
-          perception,
-          [Validators.required, Validators.min(1), Validators.max(100)],
-        ],
+        energy: [energy, [Validators.required, Validators.min(10), Validators.max(10000000)]],
+        radius: [radius, [Validators.required, Validators.min(5), Validators.max(20)]],
+        velocity: [velocity, [Validators.required, Validators.min(1), Validators.max(100)]],
+        perception: [perception, [Validators.required, Validators.min(1), Validators.max(100)]],
       })
     );
   }

@@ -5,11 +5,7 @@ export class ChartDTO {
   labels: Array<number>;
   title: string;
 
-  constructor(
-    labels: Array<number>,
-    datasets: Array<ChartDataset>,
-    title: string
-  ) {
+  constructor(labels: Array<number>, datasets: Array<ChartDataset>, title: string) {
     this.datasets = datasets;
     this.labels = labels;
     this.title = title;

@@ -46,10 +46,7 @@ export class BasicEvolutionComponent {
     this.reset();
   }
 
-  constructor(
-    private readonly evolvingObjectService: EvolvingObjectService,
-    private readonly dialog: MatDialog
-  ) {}
+  constructor(private readonly evolvingObjectService: EvolvingObjectService, private readonly dialog: MatDialog) {}
 
   public openSettings(): void {
     const settingsDialogRef = this.dialog.open(EvolvingObjectsDialogComponent, {
@@ -114,14 +111,8 @@ export class BasicEvolutionComponent {
     const sizeChunk = this.size / 4;
 
     for (let i = 0; i < this.foodAmount; i++) {
-      x = CommonHelper.getRandomIntInclusive(
-        -this.size + sizeChunk,
-        this.size - sizeChunk
-      );
-      y = CommonHelper.getRandomIntInclusive(
-        -this.size + sizeChunk,
-        this.size - sizeChunk
-      );
+      x = CommonHelper.getRandomIntInclusive(-this.size + sizeChunk, this.size - sizeChunk);
+      y = CommonHelper.getRandomIntInclusive(-this.size + sizeChunk, this.size - sizeChunk);
 
       geometry = new THREE.BoxGeometry(this.foodSize, this.foodSize);
       material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
@@ -141,29 +132,19 @@ export class BasicEvolutionComponent {
 
     this.id = requestAnimationFrame(() => this.animate());
 
-    let generationFinished: boolean = this.objects.every(
-      (object: EvolvingObjectDTO) => object.safe
-    );
+    let generationFinished: boolean = this.objects.every((object: EvolvingObjectDTO) => object.safe);
 
     if (generationFinished) {
       this.labels.push(this.labels[this.labels.length - 1] + 1);
       this.labels = [...this.labels];
       this.scene.clear();
       this.removeFood();
-      this.objects = this.evolvingObjectService.newGeneration(
-        this.objects,
-        this.size
-      );
+      this.objects = this.evolvingObjectService.newGeneration(this.objects, this.size);
       ThreeHelper.drawObjects(this.objects, this.scene);
       this.spawnFood();
       this.prepareDatasets();
     } else {
-      this.evolvingObjectService.updatePositions(
-        this.objects,
-        this.food,
-        this.scene,
-        this.size
-      );
+      this.evolvingObjectService.updatePositions(this.objects, this.food, this.scene, this.size);
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -181,16 +162,10 @@ export class BasicEvolutionComponent {
     this.populationData = this.preparePopulationDataset(this.populationDataset);
     this.velocityData = this.prepareDataset(this.velocityDataset, 'velocity');
     this.radiusData = this.prepareDataset(this.radiusDataset, 'radius');
-    this.percepionData = this.prepareDataset(
-      this.perceptionDataset,
-      'perception'
-    );
+    this.percepionData = this.prepareDataset(this.perceptionDataset, 'perception');
   }
 
-  private prepareDataset(
-    datasets: Array<ChartDataset>,
-    type: string
-  ): ChartDTO {
+  private prepareDataset(datasets: Array<ChartDataset>, type: string): ChartDTO {
     const dataset = datasets[0];
 
     if (!dataset) {
@@ -207,19 +182,13 @@ export class BasicEvolutionComponent {
   }
 
   private preparePopulationDataset(datasets: Array<ChartDataset>): ChartDTO {
-    const colors = [
-      ...new Set(this.objects.map((object: EvolvingObjectDTO) => object.color)),
-    ];
+    const colors = [...new Set(this.objects.map((object: EvolvingObjectDTO) => object.color))];
     let objects: EvolvingObjectDTO[];
     let dataset: ChartDataset;
 
     for (const color of colors) {
-      objects = this.objects.filter(
-        (object: EvolvingObjectDTO) => object.color === color
-      );
-      dataset = datasets.find(
-        (dataset: ChartDataset) => dataset.label === color
-      )!;
+      objects = this.objects.filter((object: EvolvingObjectDTO) => object.color === color);
+      dataset = datasets.find((dataset: ChartDataset) => dataset.label === color)!;
 
       if (!dataset) {
         dataset = {
@@ -245,22 +214,16 @@ export class BasicEvolutionComponent {
     let array: Array<number>;
     switch (type) {
       case 'velocity':
-        array = this.objects.map(
-          (object: EvolvingObjectDTO) => object.velocity
-        );
+        array = this.objects.map((object: EvolvingObjectDTO) => object.velocity);
         break;
       case 'radius':
         array = this.objects.map((object: EvolvingObjectDTO) => object.radius);
         break;
       case 'perception':
-        array = this.objects.map(
-          (object: EvolvingObjectDTO) => object.perception
-        );
+        array = this.objects.map((object: EvolvingObjectDTO) => object.perception);
         break;
       default:
-        array = this.objects.map(
-          (object: EvolvingObjectDTO) => object.velocity
-        );
+        array = this.objects.map((object: EvolvingObjectDTO) => object.velocity);
         break;
     }
 

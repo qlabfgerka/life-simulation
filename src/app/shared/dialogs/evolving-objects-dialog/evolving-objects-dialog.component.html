@@ -2,11 +2,7 @@
   <div class="scrollable-container">
     <form [formGroup]="objectsForm" *ngIf="objectsForm">
       <div formArrayName="objects">
-        <div
-          *ngFor="let objectForm of objectsArray.controls; let i = index"
-          [formGroupName]="i"
-          class="object-box"
-        >
+        <div *ngFor="let objectForm of objectsArray.controls; let i = index" [formGroupName]="i" class="object-box">
           <div class="title">Object {{ i + 1 }}</div>
           <div class="break"></div>
 
@@ -47,8 +43,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('energy')!.errors &&
-                objectsArray.controls[i].get('energy')!.errors!['min']
+                objectsArray.controls[i].get('energy')!.errors && objectsArray.controls[i].get('energy')!.errors!['min']
               "
               style="display: block"
             >
@@ -57,8 +52,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('energy')!.errors &&
-                objectsArray.controls[i].get('energy')!.errors!['max']
+                objectsArray.controls[i].get('energy')!.errors && objectsArray.controls[i].get('energy')!.errors!['max']
               "
               style="display: block"
             >
@@ -85,8 +79,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('radius')!.errors &&
-                objectsArray.controls[i].get('radius')!.errors!['min']
+                objectsArray.controls[i].get('radius')!.errors && objectsArray.controls[i].get('radius')!.errors!['min']
               "
               style="display: block"
             >
@@ -95,8 +88,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('radius')!.errors &&
-                objectsArray.controls[i].get('radius')!.errors!['max']
+                objectsArray.controls[i].get('radius')!.errors && objectsArray.controls[i].get('radius')!.errors!['max']
               "
               style="display: block"
             >

@@ -52,17 +52,11 @@ export class SmartObjectService {
   private initObject(object: SmartObjectDTO, size: number): void {
     const radius = object.radius / 2;
     if (Math.random() < 0.5) {
-      object.y = CommonHelper.getRandomIntInclusive(
-        -size + radius,
-        size - radius
-      );
+      object.y = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
       if (Math.random() < 0.5) object.x = -size + radius;
       else object.x = size - radius;
     } else {
-      object.x = CommonHelper.getRandomIntInclusive(
-        -size + radius,
-        size - radius
-      );
+      object.x = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
       if (Math.random() < 0.5) object.y = -size + radius;
       else object.y = size - radius;
     }

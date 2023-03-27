@@ -2,11 +2,7 @@
   <div class="scrollable-container">
     <form [formGroup]="objectsForm" *ngIf="objectsForm">
       <div formArrayName="objects">
-        <div
-          *ngFor="let objectForm of objectsArray.controls; let i = index"
-          [formGroupName]="i"
-          class="object-box"
-        >
+        <div *ngFor="let objectForm of objectsArray.controls; let i = index" [formGroupName]="i" class="object-box">
           <div class="title">Object {{ i + 1 }}</div>
           <div class="break"></div>
 
@@ -47,8 +43,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('hunger')!.errors &&
-                objectsArray.controls[i].get('hunger')!.errors!['min']
+                objectsArray.controls[i].get('hunger')!.errors && objectsArray.controls[i].get('hunger')!.errors!['min']
               "
               style="display: block"
             >
@@ -57,8 +52,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('hunger')!.errors &&
-                objectsArray.controls[i].get('hunger')!.errors!['max']
+                objectsArray.controls[i].get('hunger')!.errors && objectsArray.controls[i].get('hunger')!.errors!['max']
               "
               style="display: block"
             >
@@ -85,8 +79,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('thirst')!.errors &&
-                objectsArray.controls[i].get('thirst')!.errors!['min']
+                objectsArray.controls[i].get('thirst')!.errors && objectsArray.controls[i].get('thirst')!.errors!['min']
               "
               style="display: block"
             >
@@ -95,8 +88,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('thirst')!.errors &&
-                objectsArray.controls[i].get('thirst')!.errors!['max']
+                objectsArray.controls[i].get('thirst')!.errors && objectsArray.controls[i].get('thirst')!.errors!['max']
               "
               style="display: block"
             >
@@ -115,9 +107,7 @@
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('reproduction')!.errors &&
-                objectsArray.controls[i].get('reproduction')!.errors![
-                  'required'
-                ]
+                objectsArray.controls[i].get('reproduction')!.errors!['required']
               "
             >
               Please enter a reproduction factor.</mat-error
@@ -154,28 +144,21 @@
             />
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('age')!.errors &&
-                objectsArray.controls[i].get('age')!.errors!['required']
+                objectsArray.controls[i].get('age')!.errors && objectsArray.controls[i].get('age')!.errors!['required']
               "
             >
               Please enter an age.</mat-error
             >
 
             <mat-error
-              *ngIf="
-                objectsArray.controls[i].get('age')!.errors &&
-                objectsArray.controls[i].get('age')!.errors!['min']
-              "
+              *ngIf="objectsArray.controls[i].get('age')!.errors && objectsArray.controls[i].get('age')!.errors!['min']"
               style="display: block"
             >
               Minimum value is 0.</mat-error
             >
 
             <mat-error
-              *ngIf="
-                objectsArray.controls[i].get('age')!.errors &&
-                objectsArray.controls[i].get('age')!.errors!['max']
-              "
+              *ngIf="objectsArray.controls[i].get('age')!.errors && objectsArray.controls[i].get('age')!.errors!['max']"
               style="display: block"
             >
               Maximum value is 1.</mat-error
@@ -277,8 +260,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('radius')!.errors &&
-                objectsArray.controls[i].get('radius')!.errors!['min']
+                objectsArray.controls[i].get('radius')!.errors && objectsArray.controls[i].get('radius')!.errors!['min']
               "
               style="display: block"
             >
@@ -287,8 +269,7 @@
 
             <mat-error
               *ngIf="
-                objectsArray.controls[i].get('radius')!.errors &&
-                objectsArray.controls[i].get('radius')!.errors!['max']
+                objectsArray.controls[i].get('radius')!.errors && objectsArray.controls[i].get('radius')!.errors!['max']
               "
               style="display: block"
             >
@@ -334,9 +315,7 @@
             >
           </mat-form-field>
 
-          <mat-checkbox formControlName="gender" class="example-margin">
-            Male
-          </mat-checkbox>
+          <mat-checkbox formControlName="gender" class="example-margin"> Male </mat-checkbox>
         </div>
       </div>
     </form>

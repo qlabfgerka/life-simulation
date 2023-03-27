@@ -11,14 +11,9 @@ export class ThreeHelper {
     return camera;
   }
 
-  public static initRenderer(
-    frame: ElementRef<HTMLCanvasElement>
-  ): THREE.WebGLRenderer {
+  public static initRenderer(frame: ElementRef<HTMLCanvasElement>): THREE.WebGLRenderer {
     const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(
-      frame.nativeElement.offsetWidth,
-      frame.nativeElement.offsetHeight
-    );
+    renderer.setSize(frame.nativeElement.offsetWidth, frame.nativeElement.offsetHeight);
     renderer.setClearColor(0xfafafa);
     frame.nativeElement.appendChild(renderer.domElement);
 
@@ -26,11 +21,7 @@ export class ThreeHelper {
   }
 
   public static getMesh(object: ObjectDTO): void {
-    const geometry = new THREE.SphereGeometry(
-      object.radius,
-      object.radius,
-      object.radius
-    );
+    const geometry = new THREE.SphereGeometry(object.radius, object.radius, object.radius);
     const material = new THREE.MeshBasicMaterial({ color: object.color });
     const mesh = new THREE.Mesh(geometry, material);
 

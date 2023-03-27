@@ -9,12 +9,6 @@ import { MatSliderModule } from '@angular/material/slider';
 
 @NgModule({
   declarations: [PopulationGrowthComponent],
-  imports: [
-    CommonModule,
-    PopulationGrowthRoutingModule,
-    MatButtonModule,
-    ObjectsDialogModule,
-    MatSliderModule,
-  ],
+  imports: [CommonModule, PopulationGrowthRoutingModule, MatButtonModule, ObjectsDialogModule, MatSliderModule],
 })
 export class PopulationGrowthModule {}

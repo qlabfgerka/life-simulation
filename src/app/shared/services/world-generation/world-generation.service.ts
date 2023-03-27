@@ -7,12 +7,7 @@ import { TerrainDTO } from '../../models/terrain/terrain.model';
   providedIn: 'root',
 })
 export class WorldGenerationService {
-  public generateWorld(
-    size: number,
-    waters: number,
-    radius: number,
-    scene: THREE.Scene
-  ): Array<Array<number>> {
+  public generateWorld(size: number, waters: number, radius: number, scene: THREE.Scene): Array<Array<number>> {
     size = size * 2;
     const geometry = new THREE.BoxGeometry(size, size, 0);
     const canvas = document.createElement('canvas');
@@ -60,28 +55,17 @@ export class WorldGenerationService {
     return worldMatrix;
   }
 
-  private addWater(
-    matrix: Array<Array<number>>,
-    size: number,
-    radius: number
-  ): void {
+  private addWater(matrix: Array<Array<number>>, size: number, radius: number): void {
     const chunk = size / 3;
     radius = radius + 10;
 
-    let startRow = CommonHelper.getRandomIntInclusive(
-      radius,
-      matrix.length - radius - 10
-    );
+    let startRow = CommonHelper.getRandomIntInclusive(radius, matrix.length - radius - 10);
     let endRow = startRow + CommonHelper.getRandomIntInclusive(10, chunk);
-    let startColumn = CommonHelper.getRandomIntInclusive(
-      radius,
-      matrix[0].length - radius - 10
-    );
+    let startColumn = CommonHelper.getRandomIntInclusive(radius, matrix[0].length - radius - 10);
     let endColumn = startColumn + CommonHelper.getRandomIntInclusive(10, chunk);
 
     if (endRow >= matrix[0].length - radius) endRow = matrix[0].length - radius;
-    if (endColumn >= matrix[0].length - radius)
-      endColumn = matrix[0].length - radius;
+    if (endColumn >= matrix[0].length - radius) endColumn = matrix[0].length - radius;
 
     for (let i = startRow; i < endRow; i++) {
       for (let j = startColumn; j < endColumn; j++) matrix[i][j] = 2;

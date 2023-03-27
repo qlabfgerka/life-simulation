@@ -1,10 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  HostListener,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { ChartDataset } from 'chart.js';
 import { CommonHelper } from 'src/app/shared/helpers/common/common.helper';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
@@ -54,9 +48,7 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.reset();
   }
 
-  constructor(
-    private readonly aggressiveObjectService: AggressiveObjectService
-  ) {}
+  constructor(private readonly aggressiveObjectService: AggressiveObjectService) {}
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -65,9 +57,7 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   }
 
   public get types(): number[] {
-    return [
-      ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
-    ].sort((a, b) => a - b);
+    return [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))].sort((a, b) => a - b);
   }
 
   public getAggression(type: number): string {
@@ -82,22 +72,17 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   }
 
   public getAmount(type: number): number {
-    return this.objects.filter((object: ObjectDTO) => object.typeId === type)
-      .length;
+    return this.objects.filter((object: ObjectDTO) => object.typeId === type).length;
   }
 
   public getBackgroundColor(type: number): string {
-    return this.objects.find((object: ObjectDTO) => object.typeId === type)!
-      .color;
+    return this.objects.find((object: ObjectDTO) => object.typeId === type)!.color;
   }
 
   public getForegroundColor(type: number): string {
-    let background = this.objects.find(
-      (object: ObjectDTO) => object.typeId === type
-    )!.color;
+    let background = this.objects.find((object: ObjectDTO) => object.typeId === type)!.color;
 
-    background =
-      background.charAt(0) === '#' ? background.substring(1, 7) : background;
+    background = background.charAt(0) === '#' ? background.substring(1, 7) : background;
     const r = parseInt(background.substring(0, 2), 16);
     const g = parseInt(background.substring(2, 4), 16);
     const b = parseInt(background.substring(4, 6), 16);
@@ -117,36 +102,16 @@ export class AggresiveSimulationComponent implements AfterViewInit {
 
   public step(): void {
     if (this.currentStep === 0) {
-      [this.objects, this.scene] = this.aggressiveObjectService.update(
-        this.objects,
-        this.size,
-        this.scene
-      );
+      [this.objects, this.scene] = this.aggressiveObjectService.update(this.objects, this.size, this.scene);
       this.spawnFood();
       this.aggressiveObjectService.assignFood(this.objects, this.food);
       this.labels.push(this.labels[this.labels.length - 1] + 1);
       this.labels = [...this.labels];
       this.populationData = this.prepareDataset();
-    } else if (this.currentStep === 1)
-      this.objects = this.aggressiveObjectService.moveToFood(
-        this.objects,
-        this.food
-      );
-    else if (this.currentStep === 2)
-      this.food = this.aggressiveObjectService.removeEaten(
-        this.food,
-        this.scene
-      );
-    else if (this.currentStep === 3)
-      this.objects = this.aggressiveObjectService.returnToBase(
-        this.objects,
-        this.size
-      );
-    else if (this.currentStep === 4)
-      this.food = this.aggressiveObjectService.removeFood(
-        this.food,
-        this.scene
-      );
+    } else if (this.currentStep === 1) this.objects = this.aggressiveObjectService.moveToFood(this.objects, this.food);
+    else if (this.currentStep === 2) this.food = this.aggressiveObjectService.removeEaten(this.food, this.scene);
+    else if (this.currentStep === 3) this.objects = this.aggressiveObjectService.returnToBase(this.objects, this.size);
+    else if (this.currentStep === 4) this.food = this.aggressiveObjectService.removeFood(this.food, this.scene);
 
     this.currentStep = (this.currentStep + 1) % this.stepModulo;
     this.renderer.render(this.scene, this.camera);
@@ -217,19 +182,13 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   }
 
   private prepareDataset(): ChartDTO {
-    const typeIds = [
-      ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
-    ];
+    const typeIds = [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))];
     let objects: ObjectDTO[];
     let dataset: ChartDataset;
 
     for (const type of typeIds) {
-      objects = this.objects.filter(
-        (object: ObjectDTO) => object.typeId === type
-      );
-      dataset = this.populationDataset.find(
-        (dataset: ChartDataset) => dataset.label === type.toString()
-      )!;
+      objects = this.objects.filter((object: ObjectDTO) => object.typeId === type);
+      dataset = this.populationDataset.find((dataset: ChartDataset) => dataset.label === type.toString())!;
 
       if (!dataset) {
         dataset = {

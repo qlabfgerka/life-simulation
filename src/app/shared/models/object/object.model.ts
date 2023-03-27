@@ -16,14 +16,7 @@ export class ObjectDTO {
   /**
    *
    */
-  constructor(
-    color: string,
-    typeId: number,
-    dieRate: number,
-    spawnRate: number,
-    constant: number,
-    radius: number = 5
-  ) {
+  constructor(color: string, typeId: number, dieRate: number, spawnRate: number, constant: number, radius: number = 5) {
     this.id = nanoid();
     this.typeId = typeId;
     this.color = color;
