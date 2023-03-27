@@ -1,4 +1,10 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  ViewChild,
+} from '@angular/core';
 import { ChartDataset } from 'chart.js';
 import { CommonHelper } from 'src/app/shared/helpers/common/common.helper';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
@@ -42,6 +48,11 @@ export class AggresiveSimulationComponent implements AfterViewInit {
 
   private currentStep!: number;
   private readonly stepModulo: number = 5;
+
+  @HostListener('window:resize', ['$event'])
+  public onResize() {
+    this.reset();
+  }
 
   constructor(
     private readonly aggressiveObjectService: AggressiveObjectService
@@ -165,7 +176,7 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.populationDataset = [];
     this.populationData = null!;
 
-    this.drawObjects();
+    ThreeHelper.drawObjects(this.objects, this.scene);
     this.spawnFood();
     this.populationData = this.prepareDataset();
 
@@ -174,14 +185,6 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.currentStep = (this.currentStep + 1) % this.stepModulo;
 
     this.renderer.render(this.scene, this.camera);
-  }
-
-  private drawObjects(): void {
-    for (const object of this.objects) {
-      this.aggressiveObjectService.getMesh(object);
-
-      this.scene.add(object.mesh);
-    }
   }
 
   private initObjects(): void {

@@ -1,10 +1,11 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { SmartObjectsDialogComponent } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.component';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { SmartObjectDTO } from 'src/app/shared/models/smart-object/smart-object.model';
 import { SmartObjectService } from 'src/app/shared/services/smart-object/smart-object.service';
+import { WorldGenerationService } from 'src/app/shared/services/world-generation/world-generation.service';
 import * as THREE from 'three';
 
 @Component({
@@ -30,7 +31,15 @@ export class LifeSimulationComponent {
   private camera!: THREE.OrthographicCamera;
   private id!: number;
 
+  private worldMatrix!: Array<Array<number>>;
+
+  @HostListener('window:resize', ['$event'])
+  public onResize() {
+    this.reset();
+  }
+
   constructor(
+    private readonly worldGenerationService: WorldGenerationService,
     private readonly smartObjectService: SmartObjectService,
     private readonly dialog: MatDialog
   ) {}
@@ -60,13 +69,12 @@ export class LifeSimulationComponent {
   public step(): void {}
 
   public reset(): void {
+    if (!this.objects || this.objects.length === 0) return;
+
     if (this.id) cancelAnimationFrame(this.id);
     this.paused = true;
 
     this.frame.nativeElement.innerHTML = '';
-
-    //this.initObjects();
-    //this.aggressiveObjectService.initializePositions(this.objects, this.size);
 
     this.renderer = ThreeHelper.initRenderer(this.frame);
     this.camera = ThreeHelper.initCamera(this.size);
@@ -74,15 +82,17 @@ export class LifeSimulationComponent {
     this.scene = new THREE.Scene();
     this.food = [];
 
-    this.smartObjectService.generateWorld(this.size, this.waters, this.scene);
+    this.worldMatrix = this.worldGenerationService.generateWorld(
+      this.size,
+      this.waters,
+      Math.max(...this.objects.map((object: SmartObjectDTO) => object.radius)),
+      this.scene
+    );
 
-    /*this.drawObjects();
-    this.spawnFood();
-    this.populationData = this.prepareDataset();
+    this.smartObjectService.initializePositions(this.objects, this.size);
 
-    this.aggressiveObjectService.assignFood(this.objects, this.food);
-
-    this.currentStep = (this.currentStep + 1) % this.stepModulo;*/
+    ThreeHelper.drawObjects(this.objects, this.scene);
+    /*this.spawnFood();*/
 
     this.renderer.render(this.scene, this.camera);
   }

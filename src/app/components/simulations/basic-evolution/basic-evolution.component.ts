@@ -98,32 +98,10 @@ export class BasicEvolutionComponent {
     this.labels = [1];
     this.prepareDatasets();
 
-    this.drawObjects();
+    ThreeHelper.drawObjects(this.objects, this.scene);
     this.spawnFood();
 
     this.renderer.render(this.scene, this.camera);
-  }
-
-  private drawObjects(): void {
-    let geometry: THREE.SphereGeometry;
-    let material: THREE.MeshBasicMaterial;
-    let mesh: THREE.Mesh;
-
-    for (const object of this.objects) {
-      geometry = new THREE.SphereGeometry(
-        object.radius,
-        object.radius,
-        object.radius
-      );
-      material = new THREE.MeshBasicMaterial({ color: object.color });
-
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.x = object.x;
-      mesh.position.y = object.y;
-
-      object.mesh = mesh;
-      this.scene.add(mesh);
-    }
   }
 
   private spawnFood(): void {
@@ -176,7 +154,7 @@ export class BasicEvolutionComponent {
         this.objects,
         this.size
       );
-      this.drawObjects();
+      ThreeHelper.drawObjects(this.objects, this.scene);
       this.spawnFood();
       this.prepareDatasets();
     } else {

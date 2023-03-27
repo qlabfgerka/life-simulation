@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
+import { ThreeHelper } from '../../helpers/three/three.helper';
 import { Aggression } from '../../models/aggression/aggression.enum';
 import { FoodPairDTO } from '../../models/food-pair/food-pair.model';
 import { ObjectDTO } from '../../models/object/object.model';
@@ -135,7 +136,7 @@ export class AggressiveObjectService {
           objects[i].radius
         );
         this.initObject(newborn, size);
-        this.getMesh(newborn);
+        ThreeHelper.getMesh(newborn);
         newborns.push(newborn);
       }
 
@@ -185,20 +186,6 @@ export class AggressiveObjectService {
     }
 
     return objects;
-  }
-
-  public getMesh(object: ObjectDTO): void {
-    const geometry = new THREE.SphereGeometry(
-      object.radius,
-      object.radius,
-      object.radius
-    );
-    const material = new THREE.MeshBasicMaterial({ color: object.color });
-    const mesh = new THREE.Mesh(geometry, material);
-
-    mesh.position.x = object.x;
-    mesh.position.y = object.y;
-    object.mesh = mesh;
   }
 
   private initObject(object: ObjectDTO, size: number): void {

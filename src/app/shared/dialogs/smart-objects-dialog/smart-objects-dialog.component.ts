@@ -75,7 +75,7 @@ export class SmartObjectsDialogComponent {
         ],
         radius: [
           radius,
-          [Validators.required, Validators.min(0), Validators.max(1)],
+          [Validators.required, Validators.min(5), Validators.max(20)],
         ],
         variation: [
           variation,
