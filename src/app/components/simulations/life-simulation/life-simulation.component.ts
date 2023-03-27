@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { SmartObjectsDialogComponent } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.component';
+import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { SmartObjectDTO } from 'src/app/shared/models/smart-object/smart-object.model';
 import { SmartObjectService } from 'src/app/shared/services/smart-object/smart-object.service';
@@ -21,6 +22,7 @@ export class LifeSimulationComponent {
   public foodAmount: number = 20;
   public foodSize: number = 10;
   public size: number = 250;
+  public waters: number = 4;
   public usePerlinNoise: boolean = false;
 
   private scene!: THREE.Scene;
@@ -51,9 +53,37 @@ export class LifeSimulationComponent {
 
   public play(): void {}
 
-  public pause(): void {}
+  public pause(): void {
+    this.paused = true;
+  }
 
   public step(): void {}
 
-  public reset(): void {}
+  public reset(): void {
+    if (this.id) cancelAnimationFrame(this.id);
+    this.paused = true;
+
+    this.frame.nativeElement.innerHTML = '';
+
+    //this.initObjects();
+    //this.aggressiveObjectService.initializePositions(this.objects, this.size);
+
+    this.renderer = ThreeHelper.initRenderer(this.frame);
+    this.camera = ThreeHelper.initCamera(this.size);
+
+    this.scene = new THREE.Scene();
+    this.food = [];
+
+    this.smartObjectService.generateWorld(this.size, this.waters, this.scene);
+
+    /*this.drawObjects();
+    this.spawnFood();
+    this.populationData = this.prepareDataset();
+
+    this.aggressiveObjectService.assignFood(this.objects, this.food);
+
+    this.currentStep = (this.currentStep + 1) % this.stepModulo;*/
+
+    this.renderer.render(this.scene, this.camera);
+  }
 }

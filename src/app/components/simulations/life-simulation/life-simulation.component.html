@@ -51,37 +51,21 @@
 
   <mat-form-field class="example-full-width" style="margin-right: 1rem">
     <mat-label>Food amount</mat-label>
-    <input
-      matInput
-      type="number"
-      placeholder="10"
-      min="1"
-      max="1000"
-      [(ngModel)]="foodAmount"
-    />
+    <input matInput type="number" min="1" max="1000" [(ngModel)]="foodAmount" />
   </mat-form-field>
 
   <mat-form-field class="example-full-width" style="margin-right: 1rem">
     <mat-label>Food size</mat-label>
-    <input
-      matInput
-      type="number"
-      placeholder="10"
-      min="1"
-      max="1000"
-      [(ngModel)]="foodSize"
-    />
+    <input matInput type="number" min="1" max="1000" [(ngModel)]="foodSize" />
+  </mat-form-field>
+
+  <mat-form-field class="example-full-width" style="margin-right: 1rem">
+    <mat-label>World size</mat-label>
+    <input matInput type="number" min="10" max="1000" [(ngModel)]="size" />
   </mat-form-field>
 
   <mat-form-field class="example-full-width">
-    <mat-label>World size</mat-label>
-    <input
-      matInput
-      type="number"
-      placeholder="10"
-      min="10"
-      max="1000"
-      [(ngModel)]="size"
-    />
+    <mat-label>Waters</mat-label>
+    <input matInput type="number" min="0" max="1000" [(ngModel)]="waters" />
   </mat-form-field>
 </div>
