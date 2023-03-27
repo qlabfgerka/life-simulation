@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
+import { TerrainDTO } from '../../models/terrain/terrain.model';
 
 @Injectable({
   providedIn: 'root',
@@ -49,20 +50,23 @@ export class SmartObjectService {
     const geometry = new THREE.BoxGeometry(size, size, 1);
     const canvas = document.createElement('canvas');
 
-    const colors = ['#f6d7b0', '#74ccf4'];
-
     canvas.width = size;
     canvas.height = size;
 
     const context = canvas.getContext('2d')!;
 
+    const terrains = TerrainDTO.getTerrains();
+
+    // Terrain is random either sand or grass
+    let terrain = Math.random() < 0.5 ? 0 : 1;
+
     const worldMatrix: Array<Array<number>> = Array(size)
-      .fill(0)
-      .map(() => Array(size).fill(0));
+      .fill(terrain)
+      .map(() => Array(size).fill(terrain));
 
     for (let i = 0; i < waters; i++) this.addWater(worldMatrix, size);
 
-    context.fillStyle = colors[0];
+    context.fillStyle = terrains[terrain].color;
     context.fillRect(0, 0, size, size);
 
     const cellSize = size / worldMatrix.length;
@@ -72,7 +76,7 @@ export class SmartObjectService {
 
         const x = col * cellSize;
         const y = row * cellSize;
-        context.fillStyle = colors[worldMatrix[row][col]];
+        context.fillStyle = terrains[worldMatrix[row][col]].color;
         context.fillRect(x, y, cellSize, cellSize);
       }
     }
@@ -99,7 +103,7 @@ export class SmartObjectService {
     if (endColumn >= matrix[0].length) endColumn = matrix[0].length - 1;
 
     for (let i = startRow; i < endRow; i++) {
-      for (let j = startColumn; j < endColumn; j++) matrix[i][j] = 1;
+      for (let j = startColumn; j < endColumn; j++) matrix[i][j] = 2;
     }
   }
 }
