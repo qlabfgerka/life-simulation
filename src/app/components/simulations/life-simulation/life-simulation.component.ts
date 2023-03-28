@@ -1,9 +1,9 @@
 import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { SmartObjectsDialogComponent } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.component';
-import { CommonHelper } from 'src/app/shared/helpers/common/common.helper';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
+import { PerlinMethod } from 'src/app/shared/models/perlin-method/perlin-method.enum';
 import { SmartObjectDTO } from 'src/app/shared/models/smart-object/smart-object.model';
 import { FoodService } from 'src/app/shared/services/food/food.service';
 import { SmartObjectService } from 'src/app/shared/services/smart-object/smart-object.service';
@@ -26,8 +26,10 @@ export class LifeSimulationComponent {
   public foodSize: number = 10;
   public size: number = 250;
   public waters: number = 4;
-  public scale: number = 25;
+  public scale: number = 80;
   public usePerlinNoise: boolean = false;
+  public methods: PerlinMethod[] = [PerlinMethod.splitting, PerlinMethod.sorting];
+  public selectedMethod: PerlinMethod = PerlinMethod.splitting;
 
   private scene!: THREE.Scene;
   private renderer!: THREE.WebGLRenderer;
@@ -92,7 +94,8 @@ export class LifeSimulationComponent {
       Math.max(...this.objects.map((object: SmartObjectDTO) => object.radius)),
       this.scene,
       this.usePerlinNoise,
-      this.scale
+      this.scale,
+      this.selectedMethod
     );
 
     this.smartObjectService.initializePositions(this.objects, this.size, this.worldMatrix);

@@ -11,6 +11,7 @@ import { BarChartModule } from 'src/app/shared/charts/bar-chart/bar-chart.module
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SmartObjectsDialogModule } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.module';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatSelectModule } from '@angular/material/select';
 
 @NgModule({
   declarations: [LifeSimulationComponent],
@@ -25,6 +26,7 @@ import { MatSliderModule } from '@angular/material/slider';
     MatCheckboxModule,
     SmartObjectsDialogModule,
     MatSliderModule,
+    MatSelectModule,
   ],
 })
 export class LifeSimulationModule {}

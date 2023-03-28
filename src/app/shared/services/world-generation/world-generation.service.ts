@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as Noise from 'noisejs';
 import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
+import { PerlinMethod } from '../../models/perlin-method/perlin-method.enum';
 import { TerrainDTO } from '../../models/terrain/terrain.model';
 
 @Injectable({
@@ -14,7 +15,8 @@ export class WorldGenerationService {
     radius: number,
     scene: THREE.Scene,
     usePerlin: boolean,
-    scale: number
+    scale: number,
+    method: PerlinMethod
   ): Array<Array<number>> {
     size = size * 2;
     const geometry = new THREE.BoxGeometry(size, size, 0);
@@ -38,7 +40,7 @@ export class WorldGenerationService {
         .map(() => Array(size).fill(terrain));
 
       for (let i = 0; i < waters; i++) this.addWater(worldMatrix, size, radius);
-    } else worldMatrix = this.getPerlinNoise(size, scale);
+    } else worldMatrix = this.getPerlinNoise(size, scale, method);
 
     context.fillStyle = terrains[terrain].color;
     context.fillRect(0, 0, size, size);
@@ -85,15 +87,30 @@ export class WorldGenerationService {
     }
   }
 
-  private getPerlinNoise(size: number, scale: number): Array<Array<number>> {
+  private getPerlinNoise(size: number, scale: number, method: PerlinMethod): Array<Array<number>> {
     const matrix: Array<Array<number>> = [];
     const noise = new Noise.Noise(Math.random());
+    let values: Array<number>;
+    let slow: boolean = method === PerlinMethod.sorting;
 
     for (let i = 0; i < size; i++) {
       matrix[i] = [];
       for (let j = 0; j < size; j++) {
         const noiseValue = noise.perlin2(i / scale, j / scale);
-        matrix[i][j] = this.transformValue(noiseValue);
+        matrix[i][j] = slow ? noiseValue : this.transformValue(noiseValue);
+      }
+    }
+
+    if (!slow) return matrix;
+
+    console.log('here');
+
+    values = matrix.flat().sort((a, b) => a - b);
+    const valueIndexMap = new Map(values.map((value, index) => [value, index]));
+
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        matrix[i][j] = this.getValue(values.length, valueIndexMap.get(matrix[i][j])!);
       }
     }
 
@@ -107,6 +124,23 @@ export class WorldGenerationService {
     if (value >= 0.8 && value < 0.85) return 0;
     if (value >= 0.85 && value < 0.9) return 5;
     if (value > 0.9) return 4;
+
+    return 2;
+  }
+
+  private getValue(length: number, index: number): number {
+    const firstIntervalEnd = Math.floor(length * 0.4);
+    const secondIntervalEnd = Math.floor(length * 0.75);
+    const thirdIntervalEnd = Math.floor(length * 0.9);
+    const fourthIntervalEnd = Math.floor(length * 0.925);
+    const fifthIntervalEnd = Math.floor(length * 0.95);
+
+    if (index < firstIntervalEnd) return 2;
+    if (index >= firstIntervalEnd && index < secondIntervalEnd) return 1;
+    if (index >= secondIntervalEnd && index < thirdIntervalEnd) return 3;
+    if (index >= thirdIntervalEnd && index < fourthIntervalEnd) return 0;
+    if (index >= fourthIntervalEnd && index < fifthIntervalEnd) return 5;
+    if (index > fifthIntervalEnd) return 4;
 
     return 2;
   }

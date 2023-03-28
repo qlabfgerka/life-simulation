@@ -42,9 +42,18 @@
     <input matInput type="number" min="10" max="1000" [(ngModel)]="size" />
   </mat-form-field>
 
-  <mat-form-field class="example-full-width">
+  <mat-form-field class="example-full-width" style="margin-right: 1rem">
     <mat-label>Waters</mat-label>
     <input matInput type="number" min="0" max="1000" [(ngModel)]="waters" [disabled]="usePerlinNoise" />
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Perlin method</mat-label>
+    <mat-select [(ngModel)]="selectedMethod" [disabled]="!usePerlinNoise">
+      <mat-option *ngFor="let method of methods" [value]="method">
+        {{ method }}
+      </mat-option>
+    </mat-select>
   </mat-form-field>
 
   <div class="break"></div>
