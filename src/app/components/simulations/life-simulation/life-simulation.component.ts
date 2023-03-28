@@ -92,7 +92,7 @@ export class LifeSimulationComponent {
       this.scale
     );
 
-    this.smartObjectService.initializePositions(this.objects, this.size);
+    this.smartObjectService.initializePositions(this.objects, this.size, this.worldMatrix);
 
     ThreeHelper.drawObjects(this.objects, this.scene);
     /*this.spawnFood();*/

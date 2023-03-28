@@ -8,7 +8,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [SmartObjectsDialogComponent],
@@ -21,7 +20,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatCheckboxModule,
   ],
 })
 export class SmartObjectsDialogModule {}

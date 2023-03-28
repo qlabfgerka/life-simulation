@@ -3,17 +3,11 @@
     <form [formGroup]="objectsForm" *ngIf="objectsForm">
       <div formArrayName="objects">
         <div *ngFor="let objectForm of objectsArray.controls; let i = index" [formGroupName]="i" class="object-box">
-          <div class="title">Object {{ i + 1 }}</div>
+          <div class="title">{{ names[i] }}</div>
           <div class="break"></div>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="amount"
-              placeholder="Amount of objects"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="amount" placeholder="Amount of objects" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('amount')!.errors &&
@@ -25,13 +19,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="hunger"
-              placeholder="Hunger (0.1)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="hunger" placeholder="Hunger (0.1)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('hunger')!.errors &&
@@ -61,13 +49,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="thirst"
-              placeholder="Thirst (0.05)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="thirst" placeholder="Thirst (0.05)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('thirst')!.errors &&
@@ -97,13 +79,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="reproduction"
-              placeholder="Reproduction (0.001)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="reproduction" placeholder="Reproduction (0.001)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('reproduction')!.errors &&
@@ -135,13 +111,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="age"
-              placeholder="Age (0.001)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="age" placeholder="Age (0.001)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('age')!.errors && objectsArray.controls[i].get('age')!.errors!['required']
@@ -166,13 +136,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="perception"
-              placeholder="Perception (0.001)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="perception" placeholder="Perception (0.001)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('perception')!.errors &&
@@ -204,13 +168,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="velocity"
-              placeholder="Velocity (0.001)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="velocity" placeholder="Velocity (0.001)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('velocity')!.errors &&
@@ -242,13 +200,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input
-              matInput
-              type="number"
-              formControlName="radius"
-              placeholder="Radius (5)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="radius" placeholder="Radius (5)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('radius')!.errors &&
@@ -278,13 +230,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="fill">
-            <input
-              matInput
-              type="number"
-              formControlName="variation"
-              placeholder="Variation (0.001)"
-              (input)="detectNewObject(i)"
-            />
+            <input matInput type="number" formControlName="variation" placeholder="Variation (0.001)" />
             <mat-error
               *ngIf="
                 objectsArray.controls[i].get('variation')!.errors &&
@@ -314,8 +260,6 @@
               Maximum value is 1.</mat-error
             >
           </mat-form-field>
-
-          <mat-checkbox formControlName="gender" class="example-margin"> Male </mat-checkbox>
         </div>
       </div>
     </form>
