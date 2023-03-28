@@ -62,7 +62,7 @@ export class SmartObjectService {
         if (Math.random() < 0.5) object.y = -size + radius;
         else object.y = size - radius;
       }
-    } while (this.isNearWater(object.y, object.x, size, world));
+    } while (this.isNearWater(object.y + size, object.x + size, size, world));
   }
 
   private isNearWater(y: number, x: number, size: number, world: Array<Array<number>>): boolean {

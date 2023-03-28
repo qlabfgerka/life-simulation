@@ -8,6 +8,7 @@ import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { EvolvingObjectService } from 'src/app/shared/services/evolving-object/evolving-object.service';
+import { FoodService } from 'src/app/shared/services/food/food.service';
 import * as THREE from 'three';
 
 @Component({
@@ -46,7 +47,11 @@ export class BasicEvolutionComponent {
     this.reset();
   }
 
-  constructor(private readonly evolvingObjectService: EvolvingObjectService, private readonly dialog: MatDialog) {}
+  constructor(
+    private readonly evolvingObjectService: EvolvingObjectService,
+    private readonly foodService: FoodService,
+    private readonly dialog: MatDialog
+  ) {}
 
   public openSettings(): void {
     const settingsDialogRef = this.dialog.open(EvolvingObjectsDialogComponent, {
@@ -96,34 +101,9 @@ export class BasicEvolutionComponent {
     this.prepareDatasets();
 
     ThreeHelper.drawObjects(this.objects, this.scene);
-    this.spawnFood();
+    this.foodService.spawnFood(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
 
     this.renderer.render(this.scene, this.camera);
-  }
-
-  private spawnFood(): void {
-    let geometry: THREE.BoxGeometry;
-    let material: THREE.MeshBasicMaterial;
-    let mesh: THREE.Mesh;
-    let x: number;
-    let y: number;
-
-    const sizeChunk = this.size / 4;
-
-    for (let i = 0; i < this.foodAmount; i++) {
-      x = CommonHelper.getRandomIntInclusive(-this.size + sizeChunk, this.size - sizeChunk);
-      y = CommonHelper.getRandomIntInclusive(-this.size + sizeChunk, this.size - sizeChunk);
-
-      geometry = new THREE.BoxGeometry(this.foodSize, this.foodSize);
-      material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.x = x;
-      mesh.position.y = y;
-
-      this.food.push(new FoodDTO(0.5, x, y, 5, 5, mesh));
-      this.scene.add(mesh);
-    }
   }
 
   private animate() {
@@ -141,7 +121,7 @@ export class BasicEvolutionComponent {
       this.removeFood();
       this.objects = this.evolvingObjectService.newGeneration(this.objects, this.size);
       ThreeHelper.drawObjects(this.objects, this.scene);
-      this.spawnFood();
+      this.foodService.spawnFood(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
       this.prepareDatasets();
     } else {
       this.evolvingObjectService.updatePositions(this.objects, this.food, this.scene, this.size);

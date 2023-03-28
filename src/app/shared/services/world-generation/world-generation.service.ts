@@ -61,6 +61,7 @@ export class WorldGenerationService {
 
     const material = new THREE.MeshBasicMaterial({ map: texture });
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotateZ(Math.PI);
 
     scene.add(mesh);
 

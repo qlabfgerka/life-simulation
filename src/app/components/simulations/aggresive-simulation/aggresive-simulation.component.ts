@@ -7,6 +7,7 @@ import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { FoodPairDTO } from 'src/app/shared/models/food-pair/food-pair.model';
 import { ObjectDTO } from 'src/app/shared/models/object/object.model';
 import { AggressiveObjectService } from 'src/app/shared/services/aggresive-object/aggressive-object.service';
+import { FoodService } from 'src/app/shared/services/food/food.service';
 import * as THREE from 'three';
 
 @Component({
@@ -48,7 +49,10 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.reset();
   }
 
-  constructor(private readonly aggressiveObjectService: AggressiveObjectService) {}
+  constructor(
+    private readonly aggressiveObjectService: AggressiveObjectService,
+    private readonly foodService: FoodService
+  ) {}
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -103,7 +107,7 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   public step(): void {
     if (this.currentStep === 0) {
       [this.objects, this.scene] = this.aggressiveObjectService.update(this.objects, this.size, this.scene);
-      this.spawnFood();
+      this.foodService.spawnFoodPairs(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
       this.aggressiveObjectService.assignFood(this.objects, this.food);
       this.labels.push(this.labels[this.labels.length - 1] + 1);
       this.labels = [...this.labels];
@@ -142,7 +146,7 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.populationData = null!;
 
     ThreeHelper.drawObjects(this.objects, this.scene);
-    this.spawnFood();
+    this.foodService.spawnFoodPairs(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
     this.populationData = this.prepareDataset();
 
     this.aggressiveObjectService.assignFood(this.objects, this.food);
@@ -168,17 +172,6 @@ export class AggresiveSimulationComponent implements AfterViewInit {
         this.objectSize
       )
     );
-  }
-
-  private spawnFood(): void {
-    let food: FoodPairDTO;
-    for (let i = 0; i < this.foodAmount; i++) {
-      food = new FoodPairDTO(this.size, this.foodSize);
-      this.scene.add(food.food[0].mesh);
-      this.scene.add(food.food[1].mesh);
-
-      this.food.push(food);
-    }
   }
 
   private prepareDataset(): ChartDTO {
