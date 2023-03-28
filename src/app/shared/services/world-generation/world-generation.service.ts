@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import * as Noise from 'noisejs';
 import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
 import { TerrainDTO } from '../../models/terrain/terrain.model';
@@ -7,7 +8,14 @@ import { TerrainDTO } from '../../models/terrain/terrain.model';
   providedIn: 'root',
 })
 export class WorldGenerationService {
-  public generateWorld(size: number, waters: number, radius: number, scene: THREE.Scene): Array<Array<number>> {
+  public generateWorld(
+    size: number,
+    waters: number,
+    radius: number,
+    scene: THREE.Scene,
+    usePerlin: boolean,
+    scale: number
+  ): Array<Array<number>> {
     size = size * 2;
     const geometry = new THREE.BoxGeometry(size, size, 0);
     const canvas = document.createElement('canvas');
@@ -22,11 +30,15 @@ export class WorldGenerationService {
     // Terrain is random either sand or grass
     let terrain = Math.random() < 0.5 ? 0 : 1;
 
-    const worldMatrix: Array<Array<number>> = Array(size)
-      .fill(terrain)
-      .map(() => Array(size).fill(terrain));
+    let worldMatrix: Array<Array<number>>;
 
-    for (let i = 0; i < waters; i++) this.addWater(worldMatrix, size, radius);
+    if (!usePerlin) {
+      worldMatrix = Array(size)
+        .fill(terrain)
+        .map(() => Array(size).fill(terrain));
+
+      for (let i = 0; i < waters; i++) this.addWater(worldMatrix, size, radius);
+    } else worldMatrix = this.getPerlinNoise(size, scale);
 
     context.fillStyle = terrains[terrain].color;
     context.fillRect(0, 0, size, size);
@@ -70,5 +82,31 @@ export class WorldGenerationService {
     for (let i = startRow; i < endRow; i++) {
       for (let j = startColumn; j < endColumn; j++) matrix[i][j] = 2;
     }
+  }
+
+  private getPerlinNoise(size: number, scale: number): Array<Array<number>> {
+    const matrix: Array<Array<number>> = [];
+    const noise = new Noise.Noise(Math.random());
+
+    for (let i = 0; i < size; i++) {
+      matrix[i] = [];
+      for (let j = 0; j < size; j++) {
+        const noiseValue = noise.perlin2(i / scale, j / scale);
+        matrix[i][j] = this.transformValue(noiseValue);
+      }
+    }
+
+    return matrix;
+  }
+
+  private transformValue(value: number): number {
+    if (value < -0.2) return 2;
+    if (value >= -0.2 && value < 0.5) return 1;
+    if (value >= 0.5 && value < 0.8) return 3;
+    if (value >= 0.8 && value < 0.85) return 0;
+    if (value >= 0.85 && value < 0.9) return 5;
+    if (value > 0.9) return 4;
+
+    return 2;
   }
 }

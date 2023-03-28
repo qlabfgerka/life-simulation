@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CommonHelper } from '../../helpers/common/common.helper';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
-import { Terrain } from '../../models/terrain/terrain.enum';
-import { TerrainDTO } from '../../models/terrain/terrain.model';
 
 @Injectable({
   providedIn: 'root',

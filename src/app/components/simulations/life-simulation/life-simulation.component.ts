@@ -24,6 +24,7 @@ export class LifeSimulationComponent {
   public foodSize: number = 10;
   public size: number = 250;
   public waters: number = 4;
+  public scale: number = 25;
   public usePerlinNoise: boolean = false;
 
   private scene!: THREE.Scene;
@@ -86,7 +87,9 @@ export class LifeSimulationComponent {
       this.size,
       this.waters,
       Math.max(...this.objects.map((object: SmartObjectDTO) => object.radius)),
-      this.scene
+      this.scene,
+      this.usePerlinNoise,
+      this.scale
     );
 
     this.smartObjectService.initializePositions(this.objects, this.size);

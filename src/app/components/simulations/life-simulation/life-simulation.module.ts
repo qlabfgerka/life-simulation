@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { BarChartModule } from 'src/app/shared/charts/bar-chart/bar-chart.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SmartObjectsDialogModule } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.module';
+import { MatSliderModule } from '@angular/material/slider';
 
 @NgModule({
   declarations: [LifeSimulationComponent],
@@ -23,6 +24,7 @@ import { SmartObjectsDialogModule } from 'src/app/shared/dialogs/smart-objects-d
     BarChartModule,
     MatCheckboxModule,
     SmartObjectsDialogModule,
+    MatSliderModule,
   ],
 })
 export class LifeSimulationModule {}

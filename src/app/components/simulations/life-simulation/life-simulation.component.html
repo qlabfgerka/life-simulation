@@ -46,4 +46,14 @@
     <mat-label>Waters</mat-label>
     <input matInput type="number" min="0" max="1000" [(ngModel)]="waters" />
   </mat-form-field>
+
+  <div class="break"></div>
+
+  <div class="flexbox">
+    <mat-label>Perlin scale</mat-label>
+    <div class="break"></div>
+    <mat-slider min="0" max="100" step="5" showTickMarks discrete>
+      <input matSliderThumb [(ngModel)]="scale" />
+    </mat-slider>
+  </div>
 </div>
