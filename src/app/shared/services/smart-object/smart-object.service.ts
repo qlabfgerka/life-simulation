@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
+import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
+import { ThreeHelper } from '../../helpers/three/three.helper';
+import { FoodDTO } from '../../models/food/food.model';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
 
 @Injectable({
@@ -49,6 +52,45 @@ export class SmartObjectService {
     for (const object of objects) this.initObject(object, size, world);
   }
 
+  public update(
+    objects: SmartObjectDTO[],
+    food: FoodDTO[],
+    scene: THREE.Scene,
+    size: number,
+    world: Array<Array<number>>,
+    intervalPassed: boolean
+  ): [SmartObjectDTO[], THREE.Scene] {
+    let newborn: SmartObjectDTO | null;
+    let newborns: Array<SmartObjectDTO> = [];
+
+    let reproduced: boolean;
+
+    for (const object of objects) {
+      reproduced = false;
+
+      for (const other of objects) {
+        if (object === other) continue;
+
+        newborn = this.reproduce(object, other);
+        if (newborn) newborns.push(newborn);
+
+        // If either reproduced, finish
+        if (reproduced) break;
+      }
+
+      if (intervalPassed) this.updateValues(object);
+    }
+
+    for (const newObject of newborns) {
+      this.initObject(newObject, size, world);
+      ThreeHelper.getMesh(newObject);
+      objects.push(newObject);
+      scene.add(newObject.mesh);
+    }
+
+    return [objects.concat(newborns), scene];
+  }
+
   private initObject(object: SmartObjectDTO, size: number, world: Array<Array<number>>): void {
     const radius = object.radius / 2;
 
@@ -79,5 +121,64 @@ export class SmartObjectService {
     for (let y = startY; y < endY; y++) for (let x = startX; x < endX; x++) if (world[y][x] === 2) return true;
 
     return false;
+  }
+
+  private reproduce(first: SmartObjectDTO, second: SmartObjectDTO): SmartObjectDTO | null {
+    if (first.typeId !== second.typeId || first.gender === second.gender) return null;
+    if (first.reproductionCooldown !== 0 || second.reproductionCooldown !== 0) return null;
+    if (!this.objectsOverlap(first, second)) return null;
+
+    const genderDecision = Math.random() > 0.5;
+
+    first.reproductionCooldown = first.reproduction;
+    second.reproductionCooldown = second.reproduction;
+
+    const newborn: SmartObjectDTO = new SmartObjectDTO(
+      genderDecision ? first.color : second.color,
+      first.typeId,
+      this.mutate(first.radius, second.radius, first.variation, second.variation),
+      this.mutate(first.hunger, second.hunger, first.variation, second.variation),
+      this.mutate(first.thirst, second.thirst, first.variation, second.variation),
+      this.mutate(first.reproduction, second.reproduction, first.variation, second.variation),
+      this.mutate(first.age, second.age, first.variation, second.variation),
+      this.mutate(first.perception, second.perception, first.variation, second.variation),
+      genderDecision ? first.gender : second.gender,
+      this.mutate(first.velocity, second.velocity, first.variation, second.variation),
+      this.mutate(first.variation, second.variation, first.variation, second.variation)
+    );
+
+    return newborn;
+  }
+
+  private mutate(first: number, second: number, firstVariation: number, secondVariation: number): number {
+    // 50% chance to pick either of the parents' variations
+    const variation: number = Math.random() > 0.5 ? firstVariation : secondVariation;
+
+    // 50% chance to pick either first or second parent
+    const value: number = Math.random() > 0.5 ? first : second;
+
+    // Value will either be 1 + variation or 1 - variation
+    // Example: variation = 0.05 -> factor is either 1.05 or 0.95
+    const factor: number = Math.random() > 0.5 ? 1 - variation : 1 + variation;
+
+    // Second variation is either 20% more or 20% less
+    const thirdVariation: number = Math.random() > 0.5 ? 0.8 : 1.2;
+
+    // Low chance of another factor
+    const secondFactor: number = Math.random() < 0.1 ? thirdVariation : 1;
+
+    return value * factor * secondFactor;
+  }
+
+  private updateValues(object: SmartObjectDTO): void {
+    if (object.reproductionCooldown > 0) object.reproductionCooldown -= 0.1;
+    else object.reproductionCooldown = 0;
+  }
+
+  private objectsOverlap(first: SmartObjectDTO, second: SmartObjectDTO): boolean {
+    const sphere1 = new THREE.Sphere(first.mesh.position, first.radius);
+    const sphere2 = new THREE.Sphere(second.mesh.position, second.radius);
+
+    return sphere1.intersectsSphere(sphere2);
   }
 }

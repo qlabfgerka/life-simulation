@@ -10,6 +10,8 @@ export class SmartObjectDTO extends ObjectDTO {
   velocity: number;
   variation: number;
 
+  reproductionCooldown: number;
+
   constructor(
     color: string,
     typeId: number,
@@ -33,5 +35,7 @@ export class SmartObjectDTO extends ObjectDTO {
     this.gender = gender;
     this.velocity = velocity;
     this.variation = variation;
+
+    this.reproductionCooldown = reproduction;
   }
 }

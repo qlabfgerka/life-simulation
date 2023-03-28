@@ -35,6 +35,9 @@ export class LifeSimulationComponent {
   private renderer!: THREE.WebGLRenderer;
   private camera!: THREE.OrthographicCamera;
   private id!: number;
+  private clock!: THREE.Clock;
+  private delta!: number;
+  private interval!: number;
 
   private worldMatrix!: Array<Array<number>>;
 
@@ -66,13 +69,31 @@ export class LifeSimulationComponent {
     });
   }
 
-  public play(): void {}
+  public play(): void {
+    this.paused = false;
+
+    this.animate();
+  }
 
   public pause(): void {
     this.paused = true;
   }
 
-  public step(): void {}
+  public step(): void {
+    this.delta += this.clock.getDelta();
+    [this.objects, this.scene] = this.smartObjectService.update(
+      this.objects,
+      this.food,
+      this.scene,
+      this.size,
+      this.worldMatrix,
+      this.delta > this.interval
+    );
+
+    if (this.delta > this.interval) this.delta = this.delta % this.interval;
+
+    this.renderer.render(this.scene, this.camera);
+  }
 
   public reset(): void {
     if (!this.objects || this.objects.length === 0) return;
@@ -98,11 +119,24 @@ export class LifeSimulationComponent {
       this.selectedMethod
     );
 
+    this.clock = new THREE.Clock();
+    this.delta = 0;
+    this.interval = 1;
+
     this.smartObjectService.initializePositions(this.objects, this.size, this.worldMatrix);
 
     ThreeHelper.drawObjects(this.objects, this.scene);
     this.foodService.spawnFood(this.food, this.size, this.foodAmount, this.foodSize, this.scene, this.worldMatrix);
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private animate() {
+    if (this.objects && this.objects.length === 0) this.pause();
+    if (this.paused) return;
+
+    this.id = requestAnimationFrame(() => this.animate());
+
+    this.step();
   }
 }

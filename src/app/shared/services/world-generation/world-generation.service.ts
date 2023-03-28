@@ -103,8 +103,6 @@ export class WorldGenerationService {
 
     if (!slow) return matrix;
 
-    console.log('here');
-
     values = matrix.flat().sort((a, b) => a - b);
     const valueIndexMap = new Map(values.map((value, index) => [value, index]));
 

@@ -46,8 +46,8 @@ export class SmartObjectsDialogComponent {
     age: string = '',
     perception: string = '',
     velocity: string = '',
-    radius: string = '',
-    variation: string = ''
+    radius: number = 10,
+    variation: number = 0.05
   ): void {
     this.objectsArray.push(
       this.formBuilder.group({

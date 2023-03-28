@@ -27,7 +27,7 @@ export class ThreeHelper {
 
     mesh.position.x = object.x;
     mesh.position.y = object.y;
-    mesh.position.z = 10;
+    mesh.position.z = 50;
     object.mesh = mesh;
   }
 
