@@ -63,22 +63,28 @@ export class SmartObjectService {
     let newborn: SmartObjectDTO | null;
     let newborns: Array<SmartObjectDTO> = [];
 
-    let reproduced: boolean;
+    let toSplice: Array<number> = [];
 
-    for (const object of objects) {
-      reproduced = false;
+    for (let i = 0; i < objects.length; i++) {
+      for (let j = 0; j < objects.length; j++) {
+        if (i === j) continue;
 
-      for (const other of objects) {
-        if (object === other) continue;
-
-        newborn = this.reproduce(object, other);
+        newborn = this.reproduce(objects[i], objects[j]);
         if (newborn) newborns.push(newborn);
-
-        // If either reproduced, finish
-        if (reproduced) break;
       }
 
-      if (intervalPassed) this.updateValues(object);
+      // Update the values every interval (for example every second)
+      if (intervalPassed) this.updateValues(objects[i]);
+
+      if (objects[i].currentAge > objects[i].age) toSplice.push(i);
+    }
+
+    toSplice = [...new Set(toSplice)];
+    toSplice = toSplice.sort((a, b) => b - a);
+    for (const index of toSplice) {
+      // Kill the object
+      scene.remove(objects[index].mesh);
+      objects.splice(index, 1);
     }
 
     for (const newObject of newborns) {
@@ -124,15 +130,24 @@ export class SmartObjectService {
   }
 
   private reproduce(first: SmartObjectDTO, second: SmartObjectDTO): SmartObjectDTO | null {
+    // If they are not the same type (both prey or both predators), they cannot mutate
+    // They also cannot mutate if they are the same gender
     if (first.typeId !== second.typeId || first.gender === second.gender) return null;
+
+    // If either of the objects has a reproduction cooldown, they cannot reproduce
     if (first.reproductionCooldown !== 0 || second.reproductionCooldown !== 0) return null;
+
+    // If objects don't overlap, they cant mutate
     if (!this.objectsOverlap(first, second)) return null;
 
+    // Decide the gender
     const genderDecision = Math.random() > 0.5;
 
+    // Reset the reproduction cooldown for both
     first.reproductionCooldown = first.reproduction;
     second.reproductionCooldown = second.reproduction;
 
+    // Create a newborn with mutated properties
     const newborn: SmartObjectDTO = new SmartObjectDTO(
       genderDecision ? first.color : second.color,
       first.typeId,
@@ -171,8 +186,13 @@ export class SmartObjectService {
   }
 
   private updateValues(object: SmartObjectDTO): void {
+    // Countdown the reproduction counter
+    // once the counter reaches zero, the object can reproduce
     if (object.reproductionCooldown > 0) object.reproductionCooldown -= 0.1;
     else object.reproductionCooldown = 0;
+
+    // Age the object
+    ++object.currentAge;
   }
 
   private objectsOverlap(first: SmartObjectDTO, second: SmartObjectDTO): boolean {

@@ -11,6 +11,7 @@ export class SmartObjectDTO extends ObjectDTO {
   variation: number;
 
   reproductionCooldown: number;
+  currentAge: number;
 
   constructor(
     color: string,
@@ -36,6 +37,7 @@ export class SmartObjectDTO extends ObjectDTO {
     this.velocity = velocity;
     this.variation = variation;
 
+    this.currentAge = 0;
     this.reproductionCooldown = reproduction;
   }
 }
