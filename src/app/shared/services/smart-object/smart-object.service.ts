@@ -121,10 +121,10 @@ export class SmartObjectService {
 
     if (startY < 0) startY = 0;
     if (startX < 0) startX = 0;
-    if (endY > size - 1) endY = size - 1;
-    if (endX > size - 1) endX = size - 1;
+    if (endY > size - 1) endY = 2 * size - 1;
+    if (endX > size - 1) endX = 2 * size - 1;
 
-    for (let y = startY; y < endY; y++) for (let x = startX; x < endX; x++) if (world[y][x] === 2) return true;
+    for (let i = startY; i < endY; i++) for (let j = startX; j < endX; j++) if (world[i][j] === 2) return true;
 
     return false;
   }
