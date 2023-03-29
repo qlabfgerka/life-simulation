@@ -67,6 +67,8 @@ export class SmartObjectService {
 
     for (let i = 0; i < objects.length; i++) {
       for (let j = 0; j < objects.length; j++) {
+        this.moveObject(objects[i], objects[j], world, size);
+
         if (i === j) continue;
 
         newborn = this.reproduce(objects[i], objects[j]);
@@ -74,7 +76,7 @@ export class SmartObjectService {
       }
 
       // Update the values every interval (for example every second)
-      if (intervalPassed) this.updateValues(objects[i]);
+      if (intervalPassed) this.updateValues(objects[i], size);
 
       if (objects[i].currentAge > objects[i].age) toSplice.push(i);
     }
@@ -185,7 +187,7 @@ export class SmartObjectService {
     return value * factor * secondFactor;
   }
 
-  private updateValues(object: SmartObjectDTO): void {
+  private updateValues(object: SmartObjectDTO, size: number): void {
     // Countdown the reproduction counter
     // once the counter reaches zero, the object can reproduce
     if (object.reproductionCooldown > 0) object.reproductionCooldown -= 0.1;
@@ -193,6 +195,40 @@ export class SmartObjectService {
 
     // Age the object
     ++object.currentAge;
+
+    // Get a new random target to move to
+    object.getRandomTarget(size);
+  }
+
+  private moveObject(first: SmartObjectDTO, second: SmartObjectDTO, world: Array<Array<number>>, size: number): void {
+    this.moveTowardsTarget(first, world, size);
+  }
+
+  private moveTowardsTarget(object: SmartObjectDTO, world: Array<Array<number>>, size: number): void {
+    let direction = new THREE.Vector3().copy(object.target).sub(object.mesh.position).normalize();
+    let predicted: THREE.Vector3;
+    let x: number;
+    let y: number;
+
+    // Get the new position after the move
+    predicted = new THREE.Vector3().copy(object.mesh.position).add(direction.multiplyScalar(object.velocity));
+    x = Math.round(predicted.x);
+    y = Math.round(predicted.y);
+
+    // If the new position is not water, move to there
+    if (world[y + size][x + size] !== 2) {
+      object.mesh.position.x = predicted.x;
+      object.mesh.position.y = predicted.y;
+      object.x = x;
+      object.y = y;
+    } else {
+      // Otherwise rotate the direction and move there
+      direction = direction.applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
+
+      object.mesh.position.add(direction.multiplyScalar(10 * object.velocity));
+      object.x = Math.round(object.mesh.position.x);
+      object.y = Math.round(object.mesh.position.y);
+    }
   }
 
   private objectsOverlap(first: SmartObjectDTO, second: SmartObjectDTO): boolean {

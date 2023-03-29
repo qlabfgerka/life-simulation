@@ -42,10 +42,10 @@ export class SmartObjectsDialogComponent {
     amount: number | string = '',
     hunger: string = '',
     thirst: string = '',
-    reproduction: string = '',
+    reproduction: number = 0.5,
     age: number = 20,
     perception: string = '',
-    velocity: string = '',
+    velocity: number = 0.1,
     radius: number = 10,
     variation: number = 0.05
   ): void {

@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+import { CommonHelper } from '../../helpers/common/common.helper';
 import { ObjectDTO } from '../object/object.model';
 
 export class SmartObjectDTO extends ObjectDTO {
@@ -12,6 +14,7 @@ export class SmartObjectDTO extends ObjectDTO {
 
   reproductionCooldown: number;
   currentAge: number;
+  target: THREE.Vector3;
 
   constructor(
     color: string,
@@ -39,5 +42,11 @@ export class SmartObjectDTO extends ObjectDTO {
 
     this.currentAge = 0;
     this.reproductionCooldown = reproduction;
+    this.target = new THREE.Vector3(0, 0, 50);
+  }
+
+  public getRandomTarget(size: number) {
+    this.target.x = CommonHelper.getRandomIntInclusive(-size + 10, size - 10);
+    this.target.y = CommonHelper.getRandomIntInclusive(-size + 10, size - 10);
   }
 }
