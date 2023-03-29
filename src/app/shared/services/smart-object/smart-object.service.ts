@@ -215,11 +215,11 @@ export class SmartObjectService {
     object.getRandomTarget(size);
 
     // Update the thirst factor, update it faster if object is hungry
-    if (object.thirst < 1) object.thirst += object.hunger === 1 ? 0.2 : 0.05;
+    if (object.thirst < 1) object.thirst += object.hunger === 1 ? 0.2 : 0.005 * object.radius;
     else object.thirst = 1;
 
     // Update the hunger factor
-    if (object.hunger < 1) object.hunger += 0.1;
+    if (object.hunger < 1) object.hunger += 0.005 / object.velocity;
     else object.hunger = 1;
 
     // Update the reproduction factor
