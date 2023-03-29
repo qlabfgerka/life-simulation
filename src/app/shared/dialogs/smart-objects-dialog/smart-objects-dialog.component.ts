@@ -40,12 +40,12 @@ export class SmartObjectsDialogComponent {
 
   public addObjectInput(
     amount: number | string = '',
-    hunger: string = '',
-    thirst: string = '',
-    reproduction: number = 0.5,
-    age: number = 20,
-    perception: string = '',
-    velocity: number = 0.1,
+    hunger: number = 0.3,
+    thirst: number = 0,
+    reproduction: number = 0.2,
+    age: number = 100,
+    perception: number = 50,
+    velocity: number = 0.4,
     radius: number = 10,
     variation: number = 0.05
   ): void {
@@ -56,7 +56,7 @@ export class SmartObjectsDialogComponent {
         thirst: [thirst, [Validators.required, Validators.min(0), Validators.max(1)]],
         reproduction: [reproduction, [Validators.required, Validators.min(0), Validators.max(1)]],
         age: [age, [Validators.required, Validators.min(1), Validators.max(100)]],
-        perception: [perception, [Validators.required, Validators.min(0), Validators.max(1)]],
+        perception: [perception, [Validators.required, Validators.min(1), Validators.max(100)]],
         velocity: [velocity, [Validators.required, Validators.min(0), Validators.max(1)]],
         radius: [radius, [Validators.required, Validators.min(5), Validators.max(20)]],
         variation: [variation, [Validators.required, Validators.min(0), Validators.max(1)]],

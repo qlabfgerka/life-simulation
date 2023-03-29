@@ -67,20 +67,29 @@ export class SmartObjectService {
 
     for (let i = 0; i < objects.length; i++) {
       for (let j = 0; j < objects.length; j++) {
-        this.moveObject(objects[i], objects[j], world, size);
-
         if (i === j) continue;
 
         newborn = this.reproduce(objects[i], objects[j]);
         if (newborn) newborns.push(newborn);
       }
 
+      //Move the object
+      this.moveObject(objects[i], objects, food, world, size, scene);
+
       // Update the values every interval (for example every second)
       if (intervalPassed) this.updateValues(objects[i], size);
 
+      // Object has aged, kill it
       if (objects[i].currentAge > objects[i].age) toSplice.push(i);
+
+      // Object has dehydrated, kill it
+      if (objects[i].thirst >= 1) toSplice.push(i);
+
+      // Just to make sure the object stays in the same 2D plane
+      objects[i].mesh.position.z = 50;
     }
 
+    // Remove duplicates and sort them
     toSplice = [...new Set(toSplice)];
     toSplice = toSplice.sort((a, b) => b - a);
     for (const index of toSplice) {
@@ -89,6 +98,7 @@ export class SmartObjectService {
       objects.splice(index, 1);
     }
 
+    // Initialize newborn objects
     for (const newObject of newborns) {
       this.initObject(newObject, size, world);
       ThreeHelper.getMesh(newObject);
@@ -198,14 +208,51 @@ export class SmartObjectService {
 
     // Get a new random target to move to
     object.getRandomTarget(size);
+
+    // Update the thirst factor, update it faster if object is hungry
+    if (object.thirst < 1) object.thirst += object.hunger === 1 ? 0.2 : 0.05;
+    else object.thirst = 1;
+
+    // Update the hunger factor
+    if (object.hunger < 1) object.hunger += 0.1;
+    else object.hunger = 1;
+
+    // Update the reproduction factor
+    if (object.reproduction < 1) object.reproduction += 0.025;
+    else object.reproduction = 1;
   }
 
-  private moveObject(first: SmartObjectDTO, second: SmartObjectDTO, world: Array<Array<number>>, size: number): void {
-    this.moveTowardsTarget(first, world, size);
+  private moveObject(
+    first: SmartObjectDTO,
+    objects: SmartObjectDTO[],
+    food: FoodDTO[],
+    world: Array<Array<number>>,
+    size: number,
+    scene: THREE.Scene
+  ): void {
+    let moved: boolean = false;
+
+    // If the reproduction rate is the highest, try to find a partner
+    if (first.reproduction > first.hunger && first.reproduction > first.thirst)
+      moved = this.findPartner(first, objects, world, size);
+
+    //if (first.thirst > first.reproduction && first.reproduction > first.hunger) moved = this.findWater(first);
+
+    // If the hunger rate is the highest, try to find food
+    if (first.hunger > first.reproduction && first.reproduction > first.thirst)
+      moved = this.findFood(first, food, world, size, scene);
+
+    // If the object has not yet moved, move to a random target
+    if (!moved) this.moveTowardsTarget(first, first.target, world, size);
   }
 
-  private moveTowardsTarget(object: SmartObjectDTO, world: Array<Array<number>>, size: number): void {
-    let direction = new THREE.Vector3().copy(object.target).sub(object.mesh.position).normalize();
+  private moveTowardsTarget(
+    object: SmartObjectDTO,
+    target: THREE.Vector3,
+    world: Array<Array<number>>,
+    size: number
+  ): void {
+    let direction = new THREE.Vector3().copy(target).sub(object.mesh.position).normalize();
     let predicted: THREE.Vector3;
     let x: number;
     let y: number;
@@ -229,6 +276,80 @@ export class SmartObjectService {
       object.x = Math.round(object.mesh.position.x);
       object.y = Math.round(object.mesh.position.y);
     }
+  }
+
+  private findPartner(
+    object: SmartObjectDTO,
+    objects: SmartObjectDTO[],
+    world: Array<Array<number>>,
+    size: number
+  ): boolean {
+    const possiblePartners: SmartObjectDTO[] = [];
+
+    for (const other of objects) {
+      if (object.id === other.id) continue;
+
+      // If object is within perception, is the opposite gender and same type (prey or predator)
+      // then add that object to the list of possible partners
+      if (
+        object.mesh.position.distanceTo(other.mesh.position) < object.perception + object.radius &&
+        object.gender !== other.gender &&
+        object.typeId === other.typeId
+      )
+        possiblePartners.push(other);
+    }
+
+    // No possible partners, return the object has not moved
+    if (possiblePartners.length === 0) return false;
+
+    // Sort the possible partners by size
+    possiblePartners.sort((a, b) => b.radius - a.radius);
+
+    // Move to the partner with the biggest size
+    this.moveTowardsTarget(object, possiblePartners[0].mesh.position, world, size);
+
+    // Objeft has moved
+    return true;
+  }
+
+  private findFood(
+    object: SmartObjectDTO,
+    food: FoodDTO[],
+    world: Array<Array<number>>,
+    size: number,
+    scene: THREE.Scene
+  ): boolean {
+    let box: THREE.Box3;
+    let sphere: THREE.Sphere;
+
+    for (let i = food.length - 1; i >= 0; i--) {
+      // Check if food is within the perception of the object
+      if (object.mesh.position.distanceTo(food[i].mesh.position) < object.perception + object.radius) {
+        box = new THREE.Box3().setFromObject(food[i].mesh);
+        sphere = new THREE.Sphere(object.mesh.position, object.radius);
+
+        // If object intersects food, it is already there
+        // eat the food and remove it from the scene
+        if (box.intersectsSphere(sphere)) {
+          // Decrease the hunger factor
+          object.hunger -= food[i].value;
+          if (object.hunger < 0) object.hunger = 0;
+
+          scene.remove(food[i].mesh);
+          food.splice(i, 1);
+
+          // Object has not moved, as it has already reached the food
+          return false;
+        }
+
+        // Move toward the food
+        this.moveTowardsTarget(object, food[i].mesh.position, world, size);
+        return true;
+      }
+    }
+
+    // Object has not moved
+    return false;
   }
 
   private objectsOverlap(first: SmartObjectDTO, second: SmartObjectDTO): boolean {

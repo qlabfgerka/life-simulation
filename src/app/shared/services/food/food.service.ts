@@ -41,7 +41,7 @@ export class FoodService {
       mesh = new THREE.Mesh(geometry, material);
       mesh.position.x = x;
       mesh.position.y = y;
-      mesh.position.z = 10;
+      mesh.position.z = 50;
 
       food.push(new FoodDTO(0.5, x, y, 5, 5, mesh));
       scene.add(mesh);
