@@ -73,8 +73,11 @@ export class SmartObjectService {
         if (newborn) newborns.push(newborn);
       }
 
-      //Move the object
+      // Move the object
       this.moveObject(objects[i], objects, food, world, size, scene);
+
+      // If the object is near water, it can drink
+      if (this.isNearWater(objects[i].y + size, objects[i].x + size, size, world)) objects[i].thirst = 0;
 
       // Update the values every interval (for example every second)
       if (intervalPassed) this.updateValues(objects[i], size);
@@ -126,15 +129,17 @@ export class SmartObjectService {
   }
 
   private isNearWater(y: number, x: number, size: number, world: Array<Array<number>>): boolean {
-    let startY = y - 5;
-    let endY = y + 5;
-    let startX = x - 5;
-    let endX = x + 5;
+    let startY = Math.trunc(y) - 5;
+    let startX = Math.trunc(x) - 5;
 
     if (startY < 0) startY = 0;
     if (startX < 0) startX = 0;
-    if (endY > size - 1) endY = 2 * size - 1;
-    if (endX > size - 1) endX = 2 * size - 1;
+
+    let endY = Math.trunc(y) + 5;
+    let endX = Math.trunc(x) + 5;
+
+    if (endY > 2 * size - 1) endY = 2 * size - 1;
+    if (endX > 2 * size - 1) endX = 2 * size - 1;
 
     for (let i = startY; i < endY; i++) for (let j = startX; j < endX; j++) if (world[i][j] === 2) return true;
 
@@ -236,10 +241,11 @@ export class SmartObjectService {
     if (first.reproduction > first.hunger && first.reproduction > first.thirst)
       moved = this.findPartner(first, objects, world, size);
 
-    //if (first.thirst > first.reproduction && first.reproduction > first.hunger) moved = this.findWater(first);
+    // If the thirst rate is the highest, try to find water
+    if (first.thirst > first.reproduction && first.thirst > first.hunger) moved = this.findWater(first, world, size);
 
     // If the hunger rate is the highest, try to find food
-    if (first.hunger > first.reproduction && first.reproduction > first.thirst)
+    if (first.hunger > first.reproduction && first.hunger > first.thirst)
       moved = this.findFood(first, food, world, size, scene);
 
     // If the object has not yet moved, move to a random target
@@ -252,6 +258,9 @@ export class SmartObjectService {
     world: Array<Array<number>>,
     size: number
   ): void {
+    target.x = Math.trunc(target.x);
+    target.y = Math.trunc(target.y);
+
     let direction = new THREE.Vector3().copy(target).sub(object.mesh.position).normalize();
     let predicted: THREE.Vector3;
     let x: number;
@@ -259,23 +268,22 @@ export class SmartObjectService {
 
     // Get the new position after the move
     predicted = new THREE.Vector3().copy(object.mesh.position).add(direction.multiplyScalar(object.velocity));
-    x = Math.round(predicted.x);
-    y = Math.round(predicted.y);
+    x = Math.trunc(predicted.x);
+    y = Math.trunc(predicted.y);
 
     // If the new position is not water, move to there
     if (world[y + size][x + size] !== 2) {
       object.mesh.position.x = predicted.x;
       object.mesh.position.y = predicted.y;
-      object.x = x;
-      object.y = y;
     } else {
       // Otherwise rotate the direction and move there
       direction = direction.applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
 
       object.mesh.position.add(direction.multiplyScalar(10 * object.velocity));
-      object.x = Math.round(object.mesh.position.x);
-      object.y = Math.round(object.mesh.position.y);
     }
+
+    object.x = Math.trunc(object.mesh.position.x);
+    object.y = Math.trunc(object.mesh.position.y);
   }
 
   private findPartner(
@@ -310,6 +318,34 @@ export class SmartObjectService {
 
     // Objeft has moved
     return true;
+  }
+
+  private findWater(object: SmartObjectDTO, world: Array<Array<number>>, size: number): boolean {
+    // Initialize a bounding box around the object based on perception
+    let startY: number = Math.trunc(object.y + size - object.radius - object.perception);
+    let startX: number = Math.trunc(object.x + size - object.radius - object.perception);
+
+    if (startY < 0) startY = 0;
+    if (startX < 0) startX = 0;
+
+    let endY: number = Math.trunc(object.y + size + object.radius + object.perception);
+    let endX: number = Math.trunc(object.x + size + object.radius + object.perception);
+
+    if (endY > 2 * size - 1) endY = 2 * size - 1;
+    if (endX > 2 * size - 1) endX = 2 * size - 1;
+
+    // Search for water in the bounding box
+    for (let i = startY; i < endY; i++) {
+      for (let j = startX; j < endX; j++) {
+        if (world[i][j] !== 2) continue;
+
+        // If water is found, move to the water
+        this.moveTowardsTarget(object, new THREE.Vector3(i - size, j - size, 50), world, size);
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private findFood(

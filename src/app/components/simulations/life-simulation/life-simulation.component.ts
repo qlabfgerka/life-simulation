@@ -38,6 +38,7 @@ export class LifeSimulationComponent {
   private clock!: THREE.Clock;
   private delta!: number;
   private interval!: number;
+  private secondsPassed!: number;
 
   private worldMatrix!: Array<Array<number>>;
 
@@ -90,7 +91,16 @@ export class LifeSimulationComponent {
       this.delta > this.interval
     );
 
-    if (this.delta > this.interval) this.delta = this.delta % this.interval;
+    if (this.delta > this.interval) {
+      this.delta = this.delta % this.interval;
+      ++this.secondsPassed;
+
+      if (this.secondsPassed >= 5) {
+        this.foodService.spawnFood(this.food, this.size, 1, this.foodSize, this.scene, this.worldMatrix);
+
+        this.secondsPassed = 0;
+      }
+    }
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -122,6 +132,7 @@ export class LifeSimulationComponent {
     this.clock = new THREE.Clock();
     this.delta = 0;
     this.interval = 1;
+    this.secondsPassed = 0;
 
     this.smartObjectService.initializePositions(this.objects, this.size, this.worldMatrix);
 
