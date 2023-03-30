@@ -1,6 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Aggression } from '../../models/aggression/aggression.enum';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
 import { SmartObjectService } from '../../services/smart-object/smart-object.service';
 
@@ -15,8 +16,6 @@ export class SmartObjectsDialogComponent {
 
   public names = ['Prey', 'Predators'];
   public colors = ['#7D2CB3', '#45007D', '#FF614E', '#D31F1F'];
-
-  private typeId: number = 0;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: any,
@@ -65,9 +64,10 @@ export class SmartObjectsDialogComponent {
   }
 
   public accept(): void {
-    this.typeId = 0;
+    const types = [Aggression.prey, Aggression.predator];
     this.objects = new Array<SmartObjectDTO>();
     let counter: number = 0;
+    let typeCounter: number = 0;
 
     for (const object of this.objectsArray.controls) {
       if (!object.valid) continue;
@@ -76,7 +76,7 @@ export class SmartObjectsDialogComponent {
         this.smartObjectService.generateObjects(
           object.get('amount')!.value,
           [this.colors[counter++], this.colors[counter++]],
-          this.typeId++,
+          +types[typeCounter++],
           object.get('hunger')!.value,
           object.get('thirst')!.value,
           object.get('reproduction')!.value,

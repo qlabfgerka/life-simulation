@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
 import { ThreeHelper } from '../../helpers/three/three.helper';
+import { Aggression } from '../../models/aggression/aggression.enum';
 import { FoodDTO } from '../../models/food/food.model';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
 
@@ -69,8 +70,12 @@ export class SmartObjectService {
       for (let j = 0; j < objects.length; j++) {
         if (i === j) continue;
 
+        // Try to reproduce
         newborn = this.reproduce(objects[i], objects[j]);
         if (newborn) newborns.push(newborn);
+
+        // Try to eat object
+        if (this.eatObject(objects[i], objects[j])) toSplice.push(j);
       }
 
       // Move the object
@@ -141,6 +146,7 @@ export class SmartObjectService {
     if (endY > 2 * size - 1) endY = 2 * size - 1;
     if (endX > 2 * size - 1) endX = 2 * size - 1;
 
+    // If bounding box includes water
     for (let i = startY; i < endY; i++) for (let j = startX; j < endX; j++) if (world[i][j] === 2) return true;
 
     return false;
@@ -180,6 +186,22 @@ export class SmartObjectService {
     );
 
     return newborn;
+  }
+
+  private eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO): boolean {
+    // If object is not predator, it can not eat objects
+    if (predator.typeId !== Aggression.predator) return false;
+
+    // If both objects are predators, they cannot eat eachother
+    if (predator.typeId === prey.typeId) return false;
+
+    // If objects don't overlap, they cant eat eachtoher
+    if (!this.objectsOverlap(predator, prey)) return false;
+
+    // Predator will eat prey, reset the hunger factor
+    predator.hunger = 0;
+
+    return true;
   }
 
   private mutate(first: number, second: number, firstVariation: number, secondVariation: number): number {
@@ -239,21 +261,27 @@ export class SmartObjectService {
 
     // If the reproduction rate is the highest, try to find a partner
     if (first.reproduction > first.hunger && first.reproduction > first.thirst)
-      moved = this.findPartner(first, objects, world, size);
+      moved = this.findPartner(first, objects, world, size, true);
 
     // If the thirst rate is the highest, try to find water
-    if (first.thirst > first.reproduction && first.thirst > first.hunger) moved = this.findWater(first, world, size);
+    if (first.thirst > first.reproduction && first.thirst > first.hunger)
+      moved = this.findWater(first, objects, world, size);
 
-    // If the hunger rate is the highest, try to find food
+    // If the hunger rate is the highest, try to find food if the object is prey
+    // otherwise try to find a prey object
     if (first.hunger > first.reproduction && first.hunger > first.thirst)
-      moved = this.findFood(first, food, world, size, scene);
+      moved =
+        first.typeId === Aggression.prey
+          ? this.findFood(first, objects, food, world, size, scene)
+          : this.findPartner(first, objects, world, size, false);
 
     // If the object has not yet moved, move to a random target
-    if (!moved) this.moveTowardsTarget(first, first.target, world, size);
+    if (!moved) this.moveTowardsTarget(first, objects, first.target, world, size);
   }
 
   private moveTowardsTarget(
     object: SmartObjectDTO,
+    objects: SmartObjectDTO[],
     target: THREE.Vector3,
     world: Array<Array<number>>,
     size: number
@@ -265,6 +293,8 @@ export class SmartObjectService {
     let predicted: THREE.Vector3;
     let x: number;
     let y: number;
+
+    if (object.typeId === Aggression.prey) direction = this.moveAwayFromPredators(object, objects, direction, size);
 
     // Get the new position after the move
     predicted = new THREE.Vector3().copy(object.mesh.position).add(direction.multiplyScalar(object.velocity));
@@ -282,6 +312,7 @@ export class SmartObjectService {
       object.mesh.position.add(direction.multiplyScalar(10 * object.velocity));
     }
 
+    // Remove the decimals
     object.x = Math.trunc(object.mesh.position.x);
     object.y = Math.trunc(object.mesh.position.y);
   }
@@ -290,19 +321,29 @@ export class SmartObjectService {
     object: SmartObjectDTO,
     objects: SmartObjectDTO[],
     world: Array<Array<number>>,
-    size: number
+    size: number,
+    partnering: boolean
   ): boolean {
     const possiblePartners: SmartObjectDTO[] = [];
 
     for (const other of objects) {
       if (object.id === other.id) continue;
 
-      // If object is within perception, is the opposite gender and same type (prey or predator)
+      // If object is within perception, is the opposite gender and same type (prey or predator) and ready to reproduce
       // then add that object to the list of possible partners
       if (
+        partnering &&
         object.mesh.position.distanceTo(other.mesh.position) < object.perception + object.radius &&
         object.gender !== other.gender &&
-        object.typeId === other.typeId
+        object.typeId === other.typeId &&
+        object.reproductionCooldown === 0
+      )
+        possiblePartners.push(other);
+
+      if (
+        !partnering &&
+        object.mesh.position.distanceTo(other.mesh.position) < object.perception + object.radius &&
+        object.typeId !== other.typeId
       )
         possiblePartners.push(other);
     }
@@ -314,25 +355,25 @@ export class SmartObjectService {
     possiblePartners.sort((a, b) => b.radius - a.radius);
 
     // Move to the partner with the biggest size
-    this.moveTowardsTarget(object, possiblePartners[0].mesh.position, world, size);
+    this.moveTowardsTarget(object, objects, possiblePartners[0].mesh.position, world, size);
 
     // Objeft has moved
     return true;
   }
 
-  private findWater(object: SmartObjectDTO, world: Array<Array<number>>, size: number): boolean {
+  private findWater(
+    object: SmartObjectDTO,
+    objects: SmartObjectDTO[],
+    world: Array<Array<number>>,
+    size: number
+  ): boolean {
+    let startY: number;
+    let startX: number;
+    let endY: number;
+    let endX: number;
+
     // Initialize a bounding box around the object based on perception
-    let startY: number = Math.trunc(object.y + size - object.radius - object.perception);
-    let startX: number = Math.trunc(object.x + size - object.radius - object.perception);
-
-    if (startY < 0) startY = 0;
-    if (startX < 0) startX = 0;
-
-    let endY: number = Math.trunc(object.y + size + object.radius + object.perception);
-    let endX: number = Math.trunc(object.x + size + object.radius + object.perception);
-
-    if (endY > 2 * size - 1) endY = 2 * size - 1;
-    if (endX > 2 * size - 1) endX = 2 * size - 1;
+    [startY, endY, startX, endX] = this.getObjectBoundingBox(object, size);
 
     // Search for water in the bounding box
     for (let i = startY; i < endY; i++) {
@@ -340,7 +381,7 @@ export class SmartObjectService {
         if (world[i][j] !== 2) continue;
 
         // If water is found, move to the water
-        this.moveTowardsTarget(object, new THREE.Vector3(i - size, j - size, 50), world, size);
+        this.moveTowardsTarget(object, objects, new THREE.Vector3(i - size, j - size, 50), world, size);
         return true;
       }
     }
@@ -350,6 +391,7 @@ export class SmartObjectService {
 
   private findFood(
     object: SmartObjectDTO,
+    objects: SmartObjectDTO[],
     food: FoodDTO[],
     world: Array<Array<number>>,
     size: number,
@@ -379,7 +421,7 @@ export class SmartObjectService {
         }
 
         // Move toward the food
-        this.moveTowardsTarget(object, food[i].mesh.position, world, size);
+        this.moveTowardsTarget(object, objects, food[i].mesh.position, world, size);
         return true;
       }
     }
@@ -388,10 +430,98 @@ export class SmartObjectService {
     return false;
   }
 
+  private moveAwayFromPredators(
+    prey: SmartObjectDTO,
+    objects: SmartObjectDTO[],
+    direction: THREE.Vector3,
+    size: number
+  ): THREE.Vector3 {
+    // Get the predators
+    const predators: Array<THREE.Vector3> = this.getNearbyPredators(prey, objects, size);
+
+    // Number of search steps
+    const steps = 20;
+
+    // Find the direction with the least obstacles
+    let minObstacles = Infinity;
+    let bestDirection = new THREE.Vector3();
+
+    let obstacles: number;
+    let position: THREE.Vector3;
+
+    for (let i = 0; i < steps; i++) {
+      // Rotate the direction vector around the z-axis to sample different directions
+      direction.applyAxisAngle(new THREE.Vector3(0, 0, 1), (2 * Math.PI) / steps);
+
+      // Count the number of obstacles in this direction up to the maximum search distance
+      obstacles = 0;
+      for (let j = 0; j < prey.perception; j++) {
+        position = prey.mesh.position.clone().add(direction.clone().multiplyScalar(j));
+        for (const predator of predators) {
+          if (predator.distanceTo(position) < 1) {
+            obstacles++;
+            break;
+          }
+        }
+      }
+
+      // Update the best direction if this direction has fewer obstacles
+      if (obstacles < minObstacles) {
+        minObstacles = obstacles;
+        bestDirection.copy(direction);
+      }
+    }
+
+    return direction;
+  }
+
+  private getNearbyPredators(prey: SmartObjectDTO, objects: SmartObjectDTO[], size: number): Array<THREE.Vector3> {
+    const predators: Array<THREE.Vector3> = [];
+    let startY: number;
+    let startX: number;
+    let endY: number;
+    let endX: number;
+    let predator: SmartObjectDTO | undefined;
+
+    // Initialize a bounding box around the object based on perception
+    [startY, endY, startX, endX] = this.getObjectBoundingBox(prey, size);
+
+    // Search for predators in the bounding box of the prey
+    for (let i = startY; i < endY; i++) {
+      for (let j = startX; j < endX; j++) {
+        // Find predator at current [y, x]
+        predator = objects.find((object: SmartObjectDTO) => object.y === i - size && object.x === j - size);
+
+        // If object is predator add it to the predators array
+        if (predator && predator.typeId === Aggression.predator)
+          predators.push(new THREE.Vector3(predator.x, predator.y, 50));
+      }
+    }
+
+    return predators;
+  }
+
   private objectsOverlap(first: SmartObjectDTO, second: SmartObjectDTO): boolean {
     const sphere1 = new THREE.Sphere(first.mesh.position, first.radius);
     const sphere2 = new THREE.Sphere(second.mesh.position, second.radius);
 
     return sphere1.intersectsSphere(sphere2);
+  }
+
+  private getObjectBoundingBox(object: SmartObjectDTO, size: number): [number, number, number, number] {
+    // Initialize a bounding box around the object based on perception
+    let startY: number = Math.trunc(object.y + size - object.radius - object.perception);
+    let startX: number = Math.trunc(object.x + size - object.radius - object.perception);
+
+    if (startY < 0) startY = 0;
+    if (startX < 0) startX = 0;
+
+    let endY: number = Math.trunc(object.y + size + object.radius + object.perception);
+    let endX: number = Math.trunc(object.x + size + object.radius + object.perception);
+
+    if (endY > 2 * size - 1) endY = 2 * size - 1;
+    if (endX > 2 * size - 1) endX = 2 * size - 1;
+
+    return [startY, endY, startX, endX];
   }
 }
