@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { ChartDataset } from 'chart.js';
 import { CommonHelper } from 'src/app/shared/helpers/common/common.helper';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
@@ -7,6 +7,7 @@ import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { FoodPairDTO } from 'src/app/shared/models/food-pair/food-pair.model';
 import { ObjectDTO } from 'src/app/shared/models/object/object.model';
 import { AggressiveObjectService } from 'src/app/shared/services/aggresive-object/aggressive-object.service';
+import { FoodService } from 'src/app/shared/services/food/food.service';
 import * as THREE from 'three';
 
 @Component({
@@ -43,8 +44,14 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   private currentStep!: number;
   private readonly stepModulo: number = 5;
 
+  @HostListener('window:resize', ['$event'])
+  public onResize() {
+    this.reset();
+  }
+
   constructor(
-    private readonly aggressiveObjectService: AggressiveObjectService
+    private readonly aggressiveObjectService: AggressiveObjectService,
+    private readonly foodService: FoodService
   ) {}
 
   ngAfterViewInit(): void {
@@ -54,9 +61,7 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   }
 
   public get types(): number[] {
-    return [
-      ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
-    ].sort((a, b) => a - b);
+    return [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))].sort((a, b) => a - b);
   }
 
   public getAggression(type: number): string {
@@ -71,22 +76,17 @@ export class AggresiveSimulationComponent implements AfterViewInit {
   }
 
   public getAmount(type: number): number {
-    return this.objects.filter((object: ObjectDTO) => object.typeId === type)
-      .length;
+    return this.objects.filter((object: ObjectDTO) => object.typeId === type).length;
   }
 
   public getBackgroundColor(type: number): string {
-    return this.objects.find((object: ObjectDTO) => object.typeId === type)!
-      .color;
+    return this.objects.find((object: ObjectDTO) => object.typeId === type)!.color;
   }
 
   public getForegroundColor(type: number): string {
-    let background = this.objects.find(
-      (object: ObjectDTO) => object.typeId === type
-    )!.color;
+    let background = this.objects.find((object: ObjectDTO) => object.typeId === type)!.color;
 
-    background =
-      background.charAt(0) === '#' ? background.substring(1, 7) : background;
+    background = background.charAt(0) === '#' ? background.substring(1, 7) : background;
     const r = parseInt(background.substring(0, 2), 16);
     const g = parseInt(background.substring(2, 4), 16);
     const b = parseInt(background.substring(4, 6), 16);
@@ -106,36 +106,16 @@ export class AggresiveSimulationComponent implements AfterViewInit {
 
   public step(): void {
     if (this.currentStep === 0) {
-      [this.objects, this.scene] = this.aggressiveObjectService.update(
-        this.objects,
-        this.size,
-        this.scene
-      );
-      this.spawnFood();
+      [this.objects, this.scene] = this.aggressiveObjectService.update(this.objects, this.size, this.scene);
+      this.foodService.spawnFoodPairs(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
       this.aggressiveObjectService.assignFood(this.objects, this.food);
       this.labels.push(this.labels[this.labels.length - 1] + 1);
       this.labels = [...this.labels];
       this.populationData = this.prepareDataset();
-    } else if (this.currentStep === 1)
-      this.objects = this.aggressiveObjectService.moveToFood(
-        this.objects,
-        this.food
-      );
-    else if (this.currentStep === 2)
-      this.food = this.aggressiveObjectService.removeEaten(
-        this.food,
-        this.scene
-      );
-    else if (this.currentStep === 3)
-      this.objects = this.aggressiveObjectService.returnToBase(
-        this.objects,
-        this.size
-      );
-    else if (this.currentStep === 4)
-      this.food = this.aggressiveObjectService.removeFood(
-        this.food,
-        this.scene
-      );
+    } else if (this.currentStep === 1) this.objects = this.aggressiveObjectService.moveToFood(this.objects, this.food);
+    else if (this.currentStep === 2) this.food = this.aggressiveObjectService.removeEaten(this.food, this.scene);
+    else if (this.currentStep === 3) this.objects = this.aggressiveObjectService.returnToBase(this.objects, this.size);
+    else if (this.currentStep === 4) this.food = this.aggressiveObjectService.removeFood(this.food, this.scene);
 
     this.currentStep = (this.currentStep + 1) % this.stepModulo;
     this.renderer.render(this.scene, this.camera);
@@ -165,8 +145,8 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.populationDataset = [];
     this.populationData = null!;
 
-    this.drawObjects();
-    this.spawnFood();
+    ThreeHelper.drawObjects(this.objects, this.scene);
+    this.foodService.spawnFoodPairs(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
     this.populationData = this.prepareDataset();
 
     this.aggressiveObjectService.assignFood(this.objects, this.food);
@@ -174,14 +154,6 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     this.currentStep = (this.currentStep + 1) % this.stepModulo;
 
     this.renderer.render(this.scene, this.camera);
-  }
-
-  private drawObjects(): void {
-    for (const object of this.objects) {
-      this.aggressiveObjectService.getMesh(object);
-
-      this.scene.add(object.mesh);
-    }
   }
 
   private initObjects(): void {
@@ -202,31 +174,14 @@ export class AggresiveSimulationComponent implements AfterViewInit {
     );
   }
 
-  private spawnFood(): void {
-    let food: FoodPairDTO;
-    for (let i = 0; i < this.foodAmount; i++) {
-      food = new FoodPairDTO(this.size, this.foodSize);
-      this.scene.add(food.food[0].mesh);
-      this.scene.add(food.food[1].mesh);
-
-      this.food.push(food);
-    }
-  }
-
   private prepareDataset(): ChartDTO {
-    const typeIds = [
-      ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
-    ];
+    const typeIds = [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))];
     let objects: ObjectDTO[];
     let dataset: ChartDataset;
 
     for (const type of typeIds) {
-      objects = this.objects.filter(
-        (object: ObjectDTO) => object.typeId === type
-      );
-      dataset = this.populationDataset.find(
-        (dataset: ChartDataset) => dataset.label === type.toString()
-      )!;
+      objects = this.objects.filter((object: ObjectDTO) => object.typeId === type);
+      dataset = this.populationDataset.find((dataset: ChartDataset) => dataset.label === type.toString())!;
 
       if (!dataset) {
         dataset = {

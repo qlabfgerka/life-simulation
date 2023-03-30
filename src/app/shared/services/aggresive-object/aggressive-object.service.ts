@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
+import { ThreeHelper } from '../../helpers/three/three.helper';
 import { Aggression } from '../../models/aggression/aggression.enum';
 import { FoodPairDTO } from '../../models/food-pair/food-pair.model';
 import { ObjectDTO } from '../../models/object/object.model';
@@ -11,12 +12,7 @@ import { ObjectDTO } from '../../models/object/object.model';
 export class AggressiveObjectService {
   constructor() {}
 
-  public generateObjects(
-    amount: number,
-    color: string,
-    typeId: number,
-    radius: number
-  ): ObjectDTO[] {
+  public generateObjects(amount: number, color: string, typeId: number, radius: number): ObjectDTO[] {
     const objects: ObjectDTO[] = new Array<ObjectDTO>();
 
     for (let i = 0; i < amount; i++) {
@@ -35,8 +31,7 @@ export class AggressiveObjectService {
     let currentFoodIndex: number = 0;
     let objectIndex: number = 0;
 
-    if (shuffled.length < food.length * 2)
-      shuffled = shuffled.concat(new Array(food.length * 2 - shuffled.length));
+    if (shuffled.length < food.length * 2) shuffled = shuffled.concat(new Array(food.length * 2 - shuffled.length));
 
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -58,12 +53,8 @@ export class AggressiveObjectService {
     let second: ObjectDTO;
 
     for (const food of foods) {
-      first = objects.find(
-        (object: ObjectDTO) => object.id === food.objects[0]
-      )!;
-      second = objects.find(
-        (object: ObjectDTO) => object.id === food.objects[1]
-      )!;
+      first = objects.find((object: ObjectDTO) => object.id === food.objects[0])!;
+      second = objects.find((object: ObjectDTO) => object.id === food.objects[1])!;
 
       if (first) {
         first.x = food.food[0].x + 10;
@@ -83,22 +74,13 @@ export class AggressiveObjectService {
 
       if (first && !second) first.foodFound += 2;
       else if (!first && second) second.foodFound += 2;
-      else if (
-        first.typeId === Aggression.nonaggressive &&
-        second.typeId === Aggression.nonaggressive
-      ) {
+      else if (first.typeId === Aggression.nonaggressive && second.typeId === Aggression.nonaggressive) {
         ++first.foodFound;
         ++second.foodFound;
-      } else if (
-        first.typeId === Aggression.nonaggressive &&
-        second.typeId === Aggression.aggressive
-      ) {
+      } else if (first.typeId === Aggression.nonaggressive && second.typeId === Aggression.aggressive) {
         first.foodFound += 0.5;
         second.foodFound += 1.5;
-      } else if (
-        first.typeId === Aggression.aggressive &&
-        second.typeId === Aggression.nonaggressive
-      ) {
+      } else if (first.typeId === Aggression.aggressive && second.typeId === Aggression.nonaggressive) {
         first.foodFound += 1.5;
         second.foodFound += 0.5;
       }
@@ -107,25 +89,15 @@ export class AggressiveObjectService {
     return objects;
   }
 
-  public update(
-    objects: ObjectDTO[],
-    size: number,
-    scene: THREE.Scene
-  ): [ObjectDTO[], THREE.Scene] {
+  public update(objects: ObjectDTO[], size: number, scene: THREE.Scene): [ObjectDTO[], THREE.Scene] {
     const newborns: ObjectDTO[] = [];
     let newborn: ObjectDTO;
     let toSplice: Array<number> = [];
 
     for (let i = objects.length - 1; i >= 0; i--) {
-      if (
-        objects[i].foodFound === 0 ||
-        (objects[i].foodFound === 0.5 && Math.random() > 0.5)
-      ) {
+      if (objects[i].foodFound === 0 || (objects[i].foodFound === 0.5 && Math.random() > 0.5)) {
         toSplice.push(i);
-      } else if (
-        (objects[i].foodFound === 1.5 && Math.random() > 0.5) ||
-        objects[i].foodFound === 2
-      ) {
+      } else if ((objects[i].foodFound === 1.5 && Math.random() > 0.5) || objects[i].foodFound === 2) {
         newborn = new ObjectDTO(
           objects[i].color,
           objects[i].typeId,
@@ -135,7 +107,7 @@ export class AggressiveObjectService {
           objects[i].radius
         );
         this.initObject(newborn, size);
-        this.getMesh(newborn);
+        ThreeHelper.getMesh(newborn);
         newborns.push(newborn);
       }
 
@@ -187,34 +159,14 @@ export class AggressiveObjectService {
     return objects;
   }
 
-  public getMesh(object: ObjectDTO): void {
-    const geometry = new THREE.SphereGeometry(
-      object.radius,
-      object.radius,
-      object.radius
-    );
-    const material = new THREE.MeshBasicMaterial({ color: object.color });
-    const mesh = new THREE.Mesh(geometry, material);
-
-    mesh.position.x = object.x;
-    mesh.position.y = object.y;
-    object.mesh = mesh;
-  }
-
   private initObject(object: ObjectDTO, size: number): void {
     const radius = object.radius / 2;
     if (Math.random() < 0.5) {
-      object.y = CommonHelper.getRandomIntInclusive(
-        -size + radius,
-        size - radius
-      );
+      object.y = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
       if (Math.random() < 0.5) object.x = -size + radius;
       else object.x = size - radius;
     } else {
-      object.x = CommonHelper.getRandomIntInclusive(
-        -size + radius,
-        size - radius
-      );
+      object.x = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
       if (Math.random() < 0.5) object.y = -size + radius;
       else object.y = size - radius;
     }

@@ -18,45 +18,31 @@ export class ObjectService {
   ): ObjectDTO[] {
     const objects: ObjectDTO[] = new Array<ObjectDTO>();
 
-    for (let i = 0; i < amount; i++)
-      objects.push(new ObjectDTO(color, typeId, dieRate, spawnRate, constant));
+    for (let i = 0; i < amount; i++) objects.push(new ObjectDTO(color, typeId, dieRate, spawnRate, constant));
 
     return objects;
   }
 
-  public initializePositions(
-    objects: ObjectDTO[],
-    width: number,
-    height: number
-  ): void {
+  public initializePositions(objects: ObjectDTO[], width: number, height: number): void {
     for (const object of objects) this.initObject(object, width, height);
   }
 
-  public updatePositions(
-    objects: ObjectDTO[],
-    width: number,
-    height: number
-  ): void {
+  public updatePositions(objects: ObjectDTO[], width: number, height: number): void {
     for (const object of objects) {
       object.x += CommonHelper.getRandomIntInclusive(-2, 2);
       object.y += CommonHelper.getRandomIntInclusive(-2, 2);
 
-      if (object.x > width || object.x < 0 || object.y > height || object.y < 0)
-        this.initObject(object, width, height);
+      if (object.x > width || object.x < 0 || object.y > height || object.y < 0) this.initObject(object, width, height);
     }
   }
 
   public updateLife(objects: ObjectDTO[]): ObjectDTO[] {
     const newborns: ObjectDTO[] = new Array<ObjectDTO>();
-    const objectTypes = [
-      ...new Set(objects.map((object: ObjectDTO) => object.typeId)),
-    ];
+    const objectTypes = [...new Set(objects.map((object: ObjectDTO) => object.typeId))];
     let popSizes: { [key: string]: number } = {};
 
     for (const typeId of objectTypes) {
-      popSizes[typeId] = objects.filter(
-        (object: ObjectDTO) => object.typeId === typeId
-      ).length;
+      popSizes[typeId] = objects.filter((object: ObjectDTO) => object.typeId === typeId).length;
     }
 
     for (let i = objects.length - 1; i >= 0; i--) {
@@ -76,8 +62,7 @@ export class ObjectService {
         );
       }
 
-      if (randomDeath < objects[i].dieRate + objects[i].constant * popSize)
-        objects.splice(i, 1);
+      if (randomDeath < objects[i].dieRate + objects[i].constant * popSize) objects.splice(i, 1);
     }
 
     objects = objects.concat(newborns);

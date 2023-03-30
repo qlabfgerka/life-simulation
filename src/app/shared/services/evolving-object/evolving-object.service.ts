@@ -22,16 +22,7 @@ export class EvolvingObjectService {
     const color: string = CommonHelper.getRandomHexColor();
 
     for (let i = 0; i < amount; i++) {
-      objects.push(
-        new EvolvingObjectDTO(
-          color,
-          typeId,
-          energy,
-          radius,
-          velocity,
-          perception
-        )
-      );
+      objects.push(new EvolvingObjectDTO(color, typeId, energy, radius, velocity, perception));
     }
 
     return objects;
@@ -41,12 +32,7 @@ export class EvolvingObjectService {
     for (const object of objects) this.initObject(object, size);
   }
 
-  public updatePositions(
-    objects: EvolvingObjectDTO[],
-    food: FoodDTO[],
-    scene: THREE.Scene,
-    size: number
-  ): void {
+  public updatePositions(objects: EvolvingObjectDTO[], food: FoodDTO[], scene: THREE.Scene, size: number): void {
     let moved: boolean;
     let toSplice: Array<number> = [];
 
@@ -55,9 +41,7 @@ export class EvolvingObjectService {
       if (objects[i].safe) continue;
 
       //Decrease the energy
-      objects[i].energy -=
-        Math.pow(objects[i].radius, 3) * Math.pow(objects[i].velocity, 2) +
-        objects[i].perception;
+      objects[i].energy -= Math.pow(objects[i].radius, 3) * Math.pow(objects[i].velocity, 2) + objects[i].perception;
 
       if (objects[i].energy < 0) {
         toSplice.push(i);
@@ -67,13 +51,11 @@ export class EvolvingObjectService {
       moved = false;
 
       //Check for nearby food and move to it
-      if (objects[i].foodFound < 2)
-        moved = this.checkForFood(food, objects[i], scene);
+      if (objects[i].foodFound < 2) moved = this.checkForFood(food, objects[i], scene);
 
       //Check if there are big objects nearby
       //or if it can consume a smaller object
-      if (objects[i].foodFound < 2)
-        moved = this.checkForObjects(objects, objects[i], toSplice, i);
+      if (objects[i].foodFound < 2) moved = this.checkForObjects(objects, objects[i], toSplice, i);
 
       //Object has already moved, no need to move it again
       if (moved) continue;
@@ -96,17 +78,12 @@ export class EvolvingObjectService {
     }
   }
 
-  public newGeneration(
-    objects: EvolvingObjectDTO[],
-    size: number
-  ): EvolvingObjectDTO[] {
+  public newGeneration(objects: EvolvingObjectDTO[], size: number): EvolvingObjectDTO[] {
     const newborns: EvolvingObjectDTO[] = [];
     const color: string = CommonHelper.getRandomHexColor();
     let mutate: boolean;
     let factor: number;
-    let currentTypeId: number = Math.max(
-      ...objects.map((object: EvolvingObjectDTO) => object.typeId)
-    );
+    let currentTypeId: number = Math.max(...objects.map((object: EvolvingObjectDTO) => object.typeId));
     let newborn: EvolvingObjectDTO;
 
     for (const object of objects) {
@@ -133,11 +110,7 @@ export class EvolvingObjectService {
     return objects.concat(newborns);
   }
 
-  private checkForFood(
-    food: FoodDTO[],
-    object: EvolvingObjectDTO,
-    scene: THREE.Scene
-  ): boolean {
+  private checkForFood(food: FoodDTO[], object: EvolvingObjectDTO, scene: THREE.Scene): boolean {
     let foodPosition: THREE.Vector3;
     let moved: boolean = false;
     let objectPosition: THREE.Vector3 = object.mesh.position.clone();
@@ -145,19 +118,12 @@ export class EvolvingObjectService {
     for (let j = food.length - 1; j >= 0; j--) {
       foodPosition = food[j].mesh.position.clone();
 
-      if (
-        objectPosition.distanceTo(foodPosition) <
-        object.perception + object.radius
-      ) {
+      if (objectPosition.distanceTo(foodPosition) < object.perception + object.radius) {
         moved = true;
         if (this.moveToFood(object, food[j])) {
           ++object.foodFound;
           object.radius += food[j].value;
-          object.mesh.geometry = new THREE.SphereGeometry(
-            object.radius,
-            object.radius,
-            object.radius
-          );
+          object.mesh.geometry = new THREE.SphereGeometry(object.radius, object.radius, object.radius);
           scene.remove(food[j].mesh);
           food.splice(j, 1);
         }
@@ -181,8 +147,7 @@ export class EvolvingObjectService {
       if (j == index) continue;
       if (
         object.radius < objects[j].radius * 0.8 &&
-        object.mesh.position.distanceTo(objects[j].mesh.position) <
-          object.perception + object.radius
+        object.mesh.position.distanceTo(objects[j].mesh.position) < object.perception + object.radius
       ) {
         this.moveFromObject(object, objects[j]);
         moved = true;
@@ -203,22 +168,10 @@ export class EvolvingObjectService {
   }
 
   private moveRandom(object: EvolvingObjectDTO, size: number): void {
-    object.x += CommonHelper.getRandomIntInclusive(
-      -object.radius,
-      object.radius
-    );
-    object.y += CommonHelper.getRandomIntInclusive(
-      -object.radius,
-      object.radius
-    );
+    object.x += CommonHelper.getRandomIntInclusive(-object.radius, object.radius);
+    object.y += CommonHelper.getRandomIntInclusive(-object.radius, object.radius);
 
-    if (
-      object.x > size ||
-      object.x < -size ||
-      object.y > size ||
-      object.y < -size
-    )
-      this.initObject(object, size);
+    if (object.x > size || object.x < -size || object.y > size || object.y < -size) this.initObject(object, size);
 
     object.mesh.position.x = object.x;
     object.mesh.position.y = object.y;
@@ -235,9 +188,7 @@ export class EvolvingObjectService {
   }
 
   private moveToFood(object: EvolvingObjectDTO, food: FoodDTO): boolean {
-    const direction = new THREE.Vector3()
-      .subVectors(food.mesh.position, object.mesh.position)
-      .normalize();
+    const direction = new THREE.Vector3().subVectors(food.mesh.position, object.mesh.position).normalize();
 
     object.mesh.position.add(direction.multiplyScalar(object.velocity));
     object.x = object.mesh.position.x;
@@ -249,13 +200,8 @@ export class EvolvingObjectService {
     return box.intersectsSphere(sphere);
   }
 
-  private moveFromObject(
-    first: EvolvingObjectDTO,
-    second: EvolvingObjectDTO
-  ): void {
-    const direction = new THREE.Vector3()
-      .subVectors(second.mesh.position, first.mesh.position)
-      .normalize();
+  private moveFromObject(first: EvolvingObjectDTO, second: EvolvingObjectDTO): void {
+    const direction = new THREE.Vector3().subVectors(second.mesh.position, first.mesh.position).normalize();
 
     first.mesh.position.add(direction.multiplyScalar(-first.velocity));
     first.x = first.mesh.position.x;
@@ -265,17 +211,11 @@ export class EvolvingObjectService {
   private initObject(object: EvolvingObjectDTO, size: number): void {
     const radius = object.radius / 2;
     if (Math.random() < 0.5) {
-      object.y = CommonHelper.getRandomIntInclusive(
-        -size + radius,
-        size - radius
-      );
+      object.y = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
       if (Math.random() < 0.5) object.x = -size + radius;
       else object.x = size - radius;
     } else {
-      object.x = CommonHelper.getRandomIntInclusive(
-        -size + radius,
-        size - radius
-      );
+      object.x = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
       if (Math.random() < 0.5) object.y = -size + radius;
       else object.y = size - radius;
     }
@@ -288,10 +228,7 @@ export class EvolvingObjectService {
     return false;
   }
 
-  private getDirectionToClosestEdge(
-    object: EvolvingObjectDTO,
-    size: number
-  ): THREE.Vector3 {
+  private getDirectionToClosestEdge(object: EvolvingObjectDTO, size: number): THREE.Vector3 {
     const spherePosition = object.mesh.position.clone();
 
     //Calculate the distance between the sphere's position and the edges of the rectangle
@@ -301,12 +238,7 @@ export class EvolvingObjectService {
     const distanceToBottomEdge = spherePosition.y + size;
 
     //Determine the closest edge
-    const minDistance = Math.min(
-      distanceToLeftEdge,
-      distanceToRightEdge,
-      distanceToTopEdge,
-      distanceToBottomEdge
-    );
+    const minDistance = Math.min(distanceToLeftEdge, distanceToRightEdge, distanceToTopEdge, distanceToBottomEdge);
 
     //Return the direction to the closest point on the edge
     if (minDistance === distanceToLeftEdge) {

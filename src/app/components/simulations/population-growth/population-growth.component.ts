@@ -27,10 +27,7 @@ export class PopulationGrowthComponent {
   private populations!: Array<PopulationDTO>;
   private currentIndex!: number;
 
-  constructor(
-    private readonly objectService: ObjectService,
-    private readonly dialog: MatDialog
-  ) {}
+  constructor(private readonly objectService: ObjectService, private readonly dialog: MatDialog) {}
 
   public formatLabel(value: number): string {
     return `${value}ms`;
@@ -82,18 +79,11 @@ export class PopulationGrowthComponent {
     this.seconds = Array.from({ length: 10 }, (_, i) => i + 1);
     this.populations = new Array<PopulationDTO>();
 
-    const objectTypes = [
-      ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
-    ];
+    const objectTypes = [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))];
 
     for (const typeId of objectTypes) {
       this.populations.push(
-        new PopulationDTO(
-          typeId,
-          this.objects.find(
-            (object: ObjectDTO) => object.typeId === typeId
-          )!.color
-        )
+        new PopulationDTO(typeId, this.objects.find((object: ObjectDTO) => object.typeId === typeId)!.color)
       );
     }
 
@@ -106,17 +96,10 @@ export class PopulationGrowthComponent {
     const context = this.lifeCanvas.nativeElement.getContext('2d')!;
     const radius = 5;
 
-    context.clearRect(
-      0,
-      0,
-      this.lifeCanvas.nativeElement.clientWidth,
-      this.lifeCanvas.nativeElement.clientHeight
-    );
+    context.clearRect(0, 0, this.lifeCanvas.nativeElement.clientWidth, this.lifeCanvas.nativeElement.clientHeight);
 
-    this.lifeCanvas.nativeElement.width =
-      this.lifeCanvas.nativeElement.clientWidth;
-    this.lifeCanvas.nativeElement.height =
-      this.lifeCanvas.nativeElement.clientHeight;
+    this.lifeCanvas.nativeElement.width = this.lifeCanvas.nativeElement.clientWidth;
+    this.lifeCanvas.nativeElement.height = this.lifeCanvas.nativeElement.clientHeight;
 
     for (const object of this.objects) {
       context.beginPath();
@@ -140,17 +123,11 @@ export class PopulationGrowthComponent {
           this.seconds.shift();
         }
 
-        const objectTypes = [
-          ...new Set(this.objects.map((object: ObjectDTO) => object.typeId)),
-        ];
+        const objectTypes = [...new Set(this.objects.map((object: ObjectDTO) => object.typeId))];
 
         for (const typeId of objectTypes) {
-          let current = this.populations.find(
-            (population: PopulationDTO) => population.typeId === typeId
-          )!;
-          let amount = this.objects.filter(
-            (object: ObjectDTO) => object.typeId === typeId
-          ).length;
+          let current = this.populations.find((population: PopulationDTO) => population.typeId === typeId)!;
+          let amount = this.objects.filter((object: ObjectDTO) => object.typeId === typeId).length;
 
           if (current?.population[this.currentIndex] === -1) {
             current.population[this.currentIndex] = amount;
@@ -196,8 +173,7 @@ export class PopulationGrowthComponent {
 
     let largest = 0;
     for (const population of this.populations) {
-      for (const value of population.population)
-        if (value > largest) largest = value;
+      for (const value of population.population) if (value > largest) largest = value;
     }
 
     context.clearRect(0, 0, width, height);
@@ -235,11 +211,7 @@ export class PopulationGrowthComponent {
 
     //DRAW SECONDS
     for (let i = 0; i < this.seconds.length; i++) {
-      context.fillText(
-        this.seconds[i].toString(),
-        (GRAPH_WIDTH / this.seconds.length) * i + 100,
-        GRAPH_BOTTOM + 25
-      );
+      context.fillText(this.seconds[i].toString(), (GRAPH_WIDTH / this.seconds.length) * i + 100, GRAPH_BOTTOM + 25);
     }
 
     //DRAW LINES FOR POPULATIONS
@@ -247,22 +219,16 @@ export class PopulationGrowthComponent {
       context.strokeStyle = population.color;
 
       //DRAW FIRST VALUE OF CURRENT POPULATION
-      currentValue =
-        population.population[0] === -1 ? 0 : population.population[0];
+      currentValue = population.population[0] === -1 ? 0 : population.population[0];
       context.beginPath();
-      context.moveTo(
-        GRAPH_LEFT,
-        GRAPH_HEIGHT - (currentValue / largest) * GRAPH_HEIGHT + GRAPH_TOP
-      );
+      context.moveTo(GRAPH_LEFT, GRAPH_HEIGHT - (currentValue / largest) * GRAPH_HEIGHT + GRAPH_TOP);
 
       //DRAW THE REST
       for (let i = 1; i < population.population.length; i++) {
         if (population.population[i] === -1) continue;
         context.lineTo(
           (GRAPH_WIDTH / arrayLen) * i + GRAPH_LEFT,
-          GRAPH_HEIGHT -
-            (population.population[i] / largest) * GRAPH_HEIGHT +
-            GRAPH_TOP
+          GRAPH_HEIGHT - (population.population[i] / largest) * GRAPH_HEIGHT + GRAPH_TOP
         );
       }
       context.stroke();

@@ -23,6 +23,13 @@ const routes: Routes = [
         './components/simulations/aggresive-simulation/aggresive-simulation.module'
       ).then((m) => m.AggresiveSimulationModule),
   },
+  {
+    path: `life-simulation`,
+    loadChildren: () =>
+      import(
+        './components/simulations/life-simulation/life-simulation.module'
+      ).then((m) => m.LifeSimulationModule),
+  },
 ];
 
 @NgModule({

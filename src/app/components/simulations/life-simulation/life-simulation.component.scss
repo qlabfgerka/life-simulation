@@ -1,0 +1,16 @@
+.box-container {
+  width: 50%;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 60%;
+  margin: 1rem;
+}
+
+mat-slider {
+  width: 60%;
+}

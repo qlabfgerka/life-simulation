@@ -6,14 +6,7 @@ export class FoodDTO {
   width: number;
   mesh: THREE.Mesh;
 
-  constructor(
-    value: number,
-    x: number,
-    y: number,
-    height: number,
-    width: number,
-    mesh: THREE.Mesh
-  ) {
+  constructor(value: number, x: number, y: number, height: number, width: number, mesh: THREE.Mesh) {
     this.value = value;
     this.x = x;
     this.y = y;

@@ -8,6 +8,7 @@ import { ChartDTO } from 'src/app/shared/models/chart-data/chart-data.model';
 import { EvolvingObjectDTO } from 'src/app/shared/models/evolving-object/evolving-object.model';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { EvolvingObjectService } from 'src/app/shared/services/evolving-object/evolving-object.service';
+import { FoodService } from 'src/app/shared/services/food/food.service';
 import * as THREE from 'three';
 
 @Component({
@@ -48,6 +49,7 @@ export class BasicEvolutionComponent {
 
   constructor(
     private readonly evolvingObjectService: EvolvingObjectService,
+    private readonly foodService: FoodService,
     private readonly dialog: MatDialog
   ) {}
 
@@ -98,63 +100,10 @@ export class BasicEvolutionComponent {
     this.labels = [1];
     this.prepareDatasets();
 
-    this.drawObjects();
-    this.spawnFood();
+    ThreeHelper.drawObjects(this.objects, this.scene);
+    this.foodService.spawnFood(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
 
     this.renderer.render(this.scene, this.camera);
-  }
-
-  private drawObjects(): void {
-    let geometry: THREE.SphereGeometry;
-    let material: THREE.MeshBasicMaterial;
-    let mesh: THREE.Mesh;
-
-    for (const object of this.objects) {
-      geometry = new THREE.SphereGeometry(
-        object.radius,
-        object.radius,
-        object.radius
-      );
-      material = new THREE.MeshBasicMaterial({ color: object.color });
-
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.x = object.x;
-      mesh.position.y = object.y;
-
-      object.mesh = mesh;
-      this.scene.add(mesh);
-    }
-  }
-
-  private spawnFood(): void {
-    let geometry: THREE.BoxGeometry;
-    let material: THREE.MeshBasicMaterial;
-    let mesh: THREE.Mesh;
-    let x: number;
-    let y: number;
-
-    const sizeChunk = this.size / 4;
-
-    for (let i = 0; i < this.foodAmount; i++) {
-      x = CommonHelper.getRandomIntInclusive(
-        -this.size + sizeChunk,
-        this.size - sizeChunk
-      );
-      y = CommonHelper.getRandomIntInclusive(
-        -this.size + sizeChunk,
-        this.size - sizeChunk
-      );
-
-      geometry = new THREE.BoxGeometry(this.foodSize, this.foodSize);
-      material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.x = x;
-      mesh.position.y = y;
-
-      this.food.push(new FoodDTO(0.5, x, y, 5, 5, mesh));
-      this.scene.add(mesh);
-    }
   }
 
   private animate() {
@@ -163,29 +112,19 @@ export class BasicEvolutionComponent {
 
     this.id = requestAnimationFrame(() => this.animate());
 
-    let generationFinished: boolean = this.objects.every(
-      (object: EvolvingObjectDTO) => object.safe
-    );
+    let generationFinished: boolean = this.objects.every((object: EvolvingObjectDTO) => object.safe);
 
     if (generationFinished) {
       this.labels.push(this.labels[this.labels.length - 1] + 1);
       this.labels = [...this.labels];
       this.scene.clear();
       this.removeFood();
-      this.objects = this.evolvingObjectService.newGeneration(
-        this.objects,
-        this.size
-      );
-      this.drawObjects();
-      this.spawnFood();
+      this.objects = this.evolvingObjectService.newGeneration(this.objects, this.size);
+      ThreeHelper.drawObjects(this.objects, this.scene);
+      this.foodService.spawnFood(this.food, this.size, this.foodAmount, this.foodSize, this.scene);
       this.prepareDatasets();
     } else {
-      this.evolvingObjectService.updatePositions(
-        this.objects,
-        this.food,
-        this.scene,
-        this.size
-      );
+      this.evolvingObjectService.updatePositions(this.objects, this.food, this.scene, this.size);
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -203,16 +142,10 @@ export class BasicEvolutionComponent {
     this.populationData = this.preparePopulationDataset(this.populationDataset);
     this.velocityData = this.prepareDataset(this.velocityDataset, 'velocity');
     this.radiusData = this.prepareDataset(this.radiusDataset, 'radius');
-    this.percepionData = this.prepareDataset(
-      this.perceptionDataset,
-      'perception'
-    );
+    this.percepionData = this.prepareDataset(this.perceptionDataset, 'perception');
   }
 
-  private prepareDataset(
-    datasets: Array<ChartDataset>,
-    type: string
-  ): ChartDTO {
+  private prepareDataset(datasets: Array<ChartDataset>, type: string): ChartDTO {
     const dataset = datasets[0];
 
     if (!dataset) {
@@ -229,19 +162,13 @@ export class BasicEvolutionComponent {
   }
 
   private preparePopulationDataset(datasets: Array<ChartDataset>): ChartDTO {
-    const colors = [
-      ...new Set(this.objects.map((object: EvolvingObjectDTO) => object.color)),
-    ];
+    const colors = [...new Set(this.objects.map((object: EvolvingObjectDTO) => object.color))];
     let objects: EvolvingObjectDTO[];
     let dataset: ChartDataset;
 
     for (const color of colors) {
-      objects = this.objects.filter(
-        (object: EvolvingObjectDTO) => object.color === color
-      );
-      dataset = datasets.find(
-        (dataset: ChartDataset) => dataset.label === color
-      )!;
+      objects = this.objects.filter((object: EvolvingObjectDTO) => object.color === color);
+      dataset = datasets.find((dataset: ChartDataset) => dataset.label === color)!;
 
       if (!dataset) {
         dataset = {
@@ -267,22 +194,16 @@ export class BasicEvolutionComponent {
     let array: Array<number>;
     switch (type) {
       case 'velocity':
-        array = this.objects.map(
-          (object: EvolvingObjectDTO) => object.velocity
-        );
+        array = this.objects.map((object: EvolvingObjectDTO) => object.velocity);
         break;
       case 'radius':
         array = this.objects.map((object: EvolvingObjectDTO) => object.radius);
         break;
       case 'perception':
-        array = this.objects.map(
-          (object: EvolvingObjectDTO) => object.perception
-        );
+        array = this.objects.map((object: EvolvingObjectDTO) => object.perception);
         break;
       default:
-        array = this.objects.map(
-          (object: EvolvingObjectDTO) => object.velocity
-        );
+        array = this.objects.map((object: EvolvingObjectDTO) => object.velocity);
         break;
     }
 

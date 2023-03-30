@@ -1,11 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import {
-  AbstractControl,
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ObjectDTO } from '../../models/object/object.model';
 import { ObjectService } from '../../services/object/object.service';

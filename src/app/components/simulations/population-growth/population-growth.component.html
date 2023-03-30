@@ -8,38 +8,17 @@
 </div>
 
 <div class="flexbox">
-  <button mat-raised-button color="accent" (click)="openSettings()">
-    SETTINGS
-  </button>
+  <button mat-raised-button color="accent" (click)="openSettings()">SETTINGS</button>
 
-  <button
-    mat-raised-button
-    color="accent"
-    (click)="play()"
-    [disabled]="!paused || !objects || objects.length === 0"
-  >
+  <button mat-raised-button color="accent" (click)="play()" [disabled]="!paused || !objects || objects.length === 0">
     PLAY
   </button>
 
-  <button
-    mat-raised-button
-    color="accent"
-    (click)="pause()"
-    [disabled]="!animationInterval || paused"
-  >
-    PAUSE
-  </button>
+  <button mat-raised-button color="accent" (click)="pause()" [disabled]="!animationInterval || paused">PAUSE</button>
 
   <div class="break"></div>
 
-  <mat-slider
-    min="0"
-    max="1000"
-    step="100"
-    showTickMarks
-    discrete
-    [displayWith]="formatLabel"
-  >
+  <mat-slider min="0" max="1000" step="100" showTickMarks discrete [displayWith]="formatLabel">
     <input matSliderThumb (input)="timerChange($event)" [value]="timer" />
   </mat-slider>
 </div>
