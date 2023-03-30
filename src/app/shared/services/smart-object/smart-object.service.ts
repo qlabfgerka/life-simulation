@@ -301,6 +301,11 @@ export class SmartObjectService {
     x = Math.trunc(predicted.x);
     y = Math.trunc(predicted.y);
 
+    if (x < -size + 1) x = -size + 1;
+    if (y < -size + 1) y = -size + 1;
+    if (x > size - 1) x = size - 1;
+    if (y > size - 1) y = size - 1;
+
     // If the new position is not water, move to there
     if (world[y + size][x + size] !== 2) {
       object.mesh.position.x = predicted.x;
