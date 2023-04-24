@@ -1,7 +1,8 @@
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { SmartObjectsDialogComponent } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.component';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
+import { Aggression } from 'src/app/shared/models/aggression/aggression.enum';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { PerlinMethod } from 'src/app/shared/models/perlin-method/perlin-method.enum';
 import { SmartObjectDTO } from 'src/app/shared/models/smart-object/smart-object.model';
@@ -15,13 +16,16 @@ import * as THREE from 'three';
   templateUrl: './life-simulation.component.html',
   styleUrls: ['./life-simulation.component.scss'],
 })
-export class LifeSimulationComponent {
+export class LifeSimulationComponent implements OnDestroy {
   @ViewChild('frame', { static: false }) private readonly frame!: ElementRef;
 
   public objects!: SmartObjectDTO[];
   public food!: FoodDTO[];
   public paused!: boolean;
 
+  public settingsVisible: boolean = true;
+  public captureVisible: boolean = false;
+  public capturePeriod: number = 1000;
   public foodAmount: number = 20;
   public foodSize: number = 10;
   public size: number = 250;
@@ -30,6 +34,8 @@ export class LifeSimulationComponent {
   public usePerlinNoise: boolean = false;
   public methods: PerlinMethod[] = [PerlinMethod.splitting, PerlinMethod.sorting];
   public selectedMethod: PerlinMethod = PerlinMethod.splitting;
+
+  public captureInterval!: NodeJS.Timeout;
 
   private scene!: THREE.Scene;
   private renderer!: THREE.WebGLRenderer;
@@ -42,6 +48,8 @@ export class LifeSimulationComponent {
 
   private worldMatrix!: Array<Array<number>>;
 
+  private captureContent!: string;
+
   @HostListener('window:resize', ['$event'])
   public onResize() {
     this.reset();
@@ -53,6 +61,26 @@ export class LifeSimulationComponent {
     private readonly foodService: FoodService,
     private readonly dialog: MatDialog
   ) {}
+
+  ngOnDestroy(): void {
+    if (this.captureInterval) clearInterval(this.captureInterval);
+  }
+
+  public formatLabel(value: number): string {
+    return `${value / 1000}s`;
+  }
+
+  public toggleSettings(): void {
+    this.settingsVisible = !this.settingsVisible;
+
+    if (this.settingsVisible) this.captureVisible = false;
+  }
+
+  public toggleCapture(): void {
+    this.captureVisible = !this.captureVisible;
+
+    if (this.captureVisible) this.settingsVisible = false;
+  }
 
   public openSettings(): void {
     const settingsDialogRef = this.dialog.open(SmartObjectsDialogComponent, {
@@ -68,6 +96,26 @@ export class LifeSimulationComponent {
 
       this.reset();
     });
+  }
+
+  public beginCapture(): void {
+    if (this.captureInterval) clearInterval(this.captureInterval);
+    this.captureContent = `sep=;\nType;Food amount;Population size;Average hunger;Max hunger;Min hunger;Average thirst;Max thirst;Min thirst;Average reproduction;Max reproduction;Min reproduction;Average age;Max age;Min age;Average perception;Max perception;Min perception;Average velocity;Max velocity;Min velocity;Average radius;Max radius;Min radius; Average variation;Max variation;Min variation\n`;
+
+    this.captureInterval = setInterval(() => {
+      this.captureContent += `${this.getData(Aggression.predator)}${this.getData(Aggression.prey)}`;
+    }, this.capturePeriod);
+  }
+
+  public endCapture(): void {
+    const link = document.createElement('a');
+    const file = new Blob([this.captureContent], { type: 'text/plain' });
+
+    link.href = URL.createObjectURL(file);
+    link.download = 'export.csv';
+    link.click();
+
+    URL.revokeObjectURL(link.href);
   }
 
   public play(): void {
@@ -149,5 +197,35 @@ export class LifeSimulationComponent {
     this.id = requestAnimationFrame(() => this.animate());
 
     this.step();
+  }
+
+  private getData(type: Aggression): string {
+    const objects = this.objects.filter((object: SmartObjectDTO) => object.typeId === type);
+
+    if (objects.length === 0) return '';
+
+    const hunger = objects.map((object: SmartObjectDTO) => object.hunger);
+    const thirst = objects.map((object: SmartObjectDTO) => object.thirst);
+    const reproduction = objects.map((object: SmartObjectDTO) => object.reproduction);
+    const age = objects.map((object: SmartObjectDTO) => object.age);
+    const perception = objects.map((object: SmartObjectDTO) => object.perception);
+    const velocity = objects.map((object: SmartObjectDTO) => object.velocity);
+    const radius = objects.map((object: SmartObjectDTO) => object.radius);
+    const variation = objects.map((object: SmartObjectDTO) => object.variation);
+
+    return `${Aggression[type]};${this.food.length};${objects.length};${this.getParameterStats(
+      hunger
+    )};${this.getParameterStats(thirst)};${this.getParameterStats(reproduction)};${this.getParameterStats(
+      age
+    )};${this.getParameterStats(perception)};${this.getParameterStats(velocity)};${this.getParameterStats(
+      radius
+    )};${this.getParameterStats(variation)};\n`;
+  }
+
+  private getParameterStats(parameter: Array<number>): string {
+    const sum = parameter.reduce((a, b) => a + b, 0);
+    const avg = sum / parameter.length || 0;
+
+    return `${avg.toFixed(2)};${Math.max(...parameter).toFixed(2)};${Math.min(...parameter).toFixed(2)}`;
   }
 }

@@ -2,7 +2,12 @@
   <div class="box-container" #frame></div>
 </div>
 
-<div class="flexbox">
+<div class="flexbox" style="margin-bottom: 1rem">
+  <button mat-raised-button color="accent" (click)="toggleSettings()">TOGGLE SETTINGS</button>
+  <button mat-raised-button color="accent" (click)="toggleCapture()">TOGGLE CAPTURE</button>
+</div>
+
+<div class="flexbox" *ngIf="settingsVisible">
   <button mat-raised-button color="accent" (click)="openSettings()">SETTINGS</button>
 
   <button mat-raised-button color="accent" (click)="step()" [disabled]="!paused || !objects || objects.length === 0">
@@ -65,4 +70,17 @@
       <input matSliderThumb [(ngModel)]="scale" [disabled]="!usePerlinNoise" />
     </mat-slider>
   </div>
+</div>
+
+<div class="flexbox" *ngIf="captureVisible">
+  <div class="flexbox">
+    <mat-label>Capture interval</mat-label>
+    <div class="break"></div>
+    <mat-slider min="1000" max="30000" step="1000" showTickMarks discrete [displayWith]="formatLabel">
+      <input matSliderThumb [(ngModel)]="capturePeriod" />
+    </mat-slider>
+  </div>
+
+  <button mat-raised-button color="accent" (click)="beginCapture()" [disabled]="captureInterval">BEGIN CAPTURE</button>
+  <button mat-raised-button color="accent" (click)="endCapture()" [disabled]="!captureInterval">END CAPTURE</button>
 </div>
