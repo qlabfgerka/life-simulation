@@ -133,15 +133,17 @@ export class SmartObjectService {
     } while (this.isNearWater(object.y + size, object.x + size, size, world));
   }
 
-  private isNearWater(y: number, x: number, size: number, world: Array<Array<number>>): boolean {
+  public isNearWater(y: number, x: number, size: number, world: Array<Array<number>>): boolean {
+    if (world.length === 0 || world[0].length === 0) return false;
+
     let startY = Math.trunc(y) - 5;
     let startX = Math.trunc(x) - 5;
 
     if (startY < 0) startY = 0;
     if (startX < 0) startX = 0;
 
-    let endY = Math.trunc(y) + 5;
-    let endX = Math.trunc(x) + 5;
+    let endY = startY + 5;
+    let endX = startX + 5;
 
     if (endY > 2 * size - 1) endY = 2 * size - 1;
     if (endX > 2 * size - 1) endX = 2 * size - 1;
@@ -152,7 +154,9 @@ export class SmartObjectService {
     return false;
   }
 
-  private reproduce(first: SmartObjectDTO, second: SmartObjectDTO): SmartObjectDTO | null {
+  public reproduce(first: SmartObjectDTO, second: SmartObjectDTO): SmartObjectDTO | null {
+    if (!first || !second) return null;
+
     // If they are not the same type (both prey or both predators), they cannot mutate
     // They also cannot mutate if they are the same gender
     if (first.typeId !== second.typeId || first.gender === second.gender) return null;
@@ -188,7 +192,9 @@ export class SmartObjectService {
     return newborn;
   }
 
-  private eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO): boolean {
+  public eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO): boolean {
+    if (!predator || !prey) return false;
+
     // If object is not predator, it can not eat objects
     if (predator.typeId !== Aggression.predator) return false;
 
@@ -224,7 +230,9 @@ export class SmartObjectService {
     return value * factor * secondFactor;
   }
 
-  private updateValues(object: SmartObjectDTO, size: number): void {
+  public updateValues(object: SmartObjectDTO, size: number): void {
+    if (!object) throw new Error('Object should not be null');
+
     // Countdown the reproduction counter
     // once the counter reaches zero, the object can reproduce
     if (object.reproductionCooldown > 0) object.reproductionCooldown -= 0.1;
