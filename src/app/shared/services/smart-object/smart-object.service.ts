@@ -392,7 +392,7 @@ export class SmartObjectService {
     if (!moved) this.moveTowardsTarget(first, objects, first.target, world, size);
   }
 
-  private moveTowardsTarget(
+  public moveTowardsTarget(
     object: SmartObjectDTO,
     objects: SmartObjectDTO[],
     target: THREE.Vector3,
@@ -519,7 +519,7 @@ export class SmartObjectService {
     return false;
   }
 
-  private findPlant(
+  public findPlant(
     object: SmartObjectDTO,
     objects: SmartObjectDTO[],
     plants: PlantDTO[],
@@ -571,8 +571,8 @@ export class SmartObjectService {
     // Move to the partner with the biggest size
     this.moveTowardsTarget(object, objects, potentialFood[0].mesh.position, world, size);
 
-    // Object has not moved
-    return false;
+    // Object has moved
+    return true;
   }
 
   private moveAwayFromPredators(

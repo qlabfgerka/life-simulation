@@ -4,6 +4,8 @@ import { SmartObjectService } from './smart-object.service';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
 import * as THREE from 'three';
 import { Aggression } from '../../models/aggression/aggression.enum';
+import { PlantDTO } from '../../models/plant/plant.model';
+import { PlantType } from '../../models/plant/plant-type.enum';
 
 describe('SmartObjectService', () => {
   let service: SmartObjectService;
@@ -377,5 +379,93 @@ describe('SmartObjectService', () => {
     service.updateValues(flyingPrey, size, matrix);
 
     expect(service.eatObject(predator, flyingPrey, size, matrix)).toBeFalse();
+  });
+
+  it('should find food', () => {
+    const aquatic = new SmartObjectDTO('#000000', Aggression.aquatic, 1, 1, 1, 1, 1, 50, true, 1, 1);
+    const plants: PlantDTO[] = [];
+    let plant: PlantDTO;
+
+    const size: number = 50;
+    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    let box: THREE.BoxGeometry;
+    let geometry = new THREE.SphereGeometry(1, 1, 1);
+    let objectMesh = new THREE.Mesh(geometry, material);
+    let plantMesh: THREE.Mesh;
+    let matrix: Array<Array<number>>;
+
+    matrix = Array(size * 2)
+      .fill(0)
+      .map(() => Array(size * 2).fill(0));
+
+    aquatic.mesh = objectMesh;
+    aquatic.mesh.position.x = 5;
+    aquatic.mesh.position.y = 5;
+    aquatic.x = 5;
+    aquatic.y = 5;
+    aquatic.energy = 0.1;
+    aquatic.isFlying = false;
+
+    for (let i = 0; i < 10; i++) {
+      box = new THREE.BoxGeometry(1, 1, 1);
+      plantMesh = new THREE.Mesh(box, material);
+      plant = new PlantDTO(i < 5 ? PlantType.aquatic : PlantType.land, 10, 1, 1, 1, 1, 1);
+      plant.mesh = plantMesh;
+      plant.mesh.position.x = 10;
+      plant.mesh.position.y = 10;
+      plant.x = 10;
+      plant.y = 10;
+      plants.push(plant);
+    }
+
+    spyOn(service, 'moveTowardsTarget');
+
+    service.findPlant(aquatic, [aquatic], plants, matrix, size, new THREE.Scene());
+
+    expect(service.moveTowardsTarget).toHaveBeenCalled();
+  });
+
+  it('should not find food', () => {
+    const aquatic = new SmartObjectDTO('#000000', Aggression.aquatic, 1, 1, 1, 1, 1, 50, true, 1, 1);
+    const plants: PlantDTO[] = [];
+    let plant: PlantDTO;
+
+    const size: number = 50;
+    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    let box: THREE.BoxGeometry;
+    let geometry = new THREE.SphereGeometry(1, 1, 1);
+    let objectMesh = new THREE.Mesh(geometry, material);
+    let plantMesh: THREE.Mesh;
+    let matrix: Array<Array<number>>;
+
+    matrix = Array(size * 2)
+      .fill(0)
+      .map(() => Array(size * 2).fill(0));
+
+    aquatic.mesh = objectMesh;
+    aquatic.mesh.position.x = 5;
+    aquatic.mesh.position.y = 5;
+    aquatic.x = 5;
+    aquatic.y = 5;
+    aquatic.energy = 0.1;
+    aquatic.isFlying = false;
+
+    for (let i = 0; i < 10; i++) {
+      box = new THREE.BoxGeometry(1, 1, 1);
+      plantMesh = new THREE.Mesh(box, material);
+      plant = new PlantDTO(PlantType.land, 10, 1, 1, 1, 1, 1);
+      plant.mesh = plantMesh;
+      plant.mesh.position.x = 10;
+      plant.mesh.position.y = 10;
+      plant.x = 10;
+      plant.y = 10;
+      plants.push(plant);
+    }
+
+    spyOn(service, 'moveTowardsTarget');
+
+    service.findPlant(aquatic, [aquatic], plants, matrix, size, new THREE.Scene());
+
+    expect(service.moveTowardsTarget).not.toHaveBeenCalled();
   });
 });
