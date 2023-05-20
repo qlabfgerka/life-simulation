@@ -118,6 +118,14 @@ export class SmartObjectService {
   }
 
   private initObject(object: SmartObjectDTO, size: number, world: Array<Array<number>>): void {
+    if (object.typeId === Aggression.aquatic) return this.spawnInWater(object, size, world);
+
+    if (object.typeId === Aggression.flying) return this.spawnAnywhere(object, size, world);
+
+    this.spawnOnEdge(object, size, world);
+  }
+
+  private spawnOnEdge(object: SmartObjectDTO, size: number, world: Array<Array<number>>): void {
     const radius = object.radius / 2;
 
     do {
@@ -131,6 +139,22 @@ export class SmartObjectService {
         else object.y = size - radius;
       }
     } while (this.isNearWater(object.y + size, object.x + size, size, world));
+  }
+
+  private spawnAnywhere(object: SmartObjectDTO, size: number, world: Array<Array<number>>): void {
+    const radius = object.radius / 2;
+
+    object.x = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
+    object.y = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
+  }
+
+  private spawnInWater(object: SmartObjectDTO, size: number, world: Array<Array<number>>): void {
+    const radius = object.radius / 2;
+
+    do {
+      object.x = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
+      object.y = CommonHelper.getRandomIntInclusive(-size + radius, size - radius);
+    } while (!this.isNearWater(object.y + size, object.x + size, size, world));
   }
 
   public isNearWater(y: number, x: number, size: number, world: Array<Array<number>>): boolean {
@@ -314,15 +338,17 @@ export class SmartObjectService {
     if (x > size - 1) x = size - 1;
     if (y > size - 1) y = size - 1;
 
-    // If the new position is not water, move to there
-    if (world[y + size][x + size] !== 2) {
-      object.mesh.position.x = predicted.x;
-      object.mesh.position.y = predicted.y;
-    } else {
+    if (
+      (object.typeId === Aggression.aquatic && world[y + size][x + size] !== 2) ||
+      ((object.typeId === Aggression.predator || object.typeId === Aggression.prey) && world[y + size][x + size] === 2)
+    ) {
       // Otherwise rotate the direction and move there
       direction = direction.applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
 
       object.mesh.position.add(direction.multiplyScalar(10 * object.velocity));
+    } else {
+      object.mesh.position.x = predicted.x;
+      object.mesh.position.y = predicted.y;
     }
 
     // Remove the decimals

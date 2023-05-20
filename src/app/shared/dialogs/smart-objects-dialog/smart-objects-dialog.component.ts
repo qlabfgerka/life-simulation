@@ -14,8 +14,8 @@ export class SmartObjectsDialogComponent {
   public objects!: SmartObjectDTO[];
   public objectsForm!: FormGroup;
 
-  public names = ['Prey', 'Predators'];
-  public colors = ['#7D2CB3', '#45007D', '#FF614E', '#D31F1F'];
+  public names = ['Prey', 'Predators', 'Flying', 'Aquatic'];
+  public colors = ['#7D2CB3', '#45007D', '#FF614E', '#D31F1F', '#343434', '#242424', '#00BCD4', '#008394'];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) private data: any,
@@ -38,7 +38,7 @@ export class SmartObjectsDialogComponent {
   }
 
   public addObjectInput(
-    amount: number | string = '',
+    amount: number | string = 10,
     hunger: number = 0.3,
     thirst: number = 0,
     reproduction: number = 0.2,
@@ -64,7 +64,7 @@ export class SmartObjectsDialogComponent {
   }
 
   public accept(): void {
-    const types = [Aggression.prey, Aggression.predator];
+    const types = [Aggression.prey, Aggression.predator, Aggression.flying, Aggression.aquatic];
     this.objects = new Array<SmartObjectDTO>();
     let counter: number = 0;
     let typeCounter: number = 0;
@@ -104,7 +104,7 @@ export class SmartObjectsDialogComponent {
     });
 
     if (this.objects && this.objects.length > 0) this.patchValues();
-    else for (let i = 0; i < 2; i++) this.addObjectInput();
+    else for (let i = 0; i < 4; i++) this.addObjectInput();
   }
 
   private patchValues(): void {

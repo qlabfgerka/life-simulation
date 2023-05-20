@@ -3,4 +3,6 @@ export enum Aggression {
   nonaggressive = 1,
   prey = 2,
   predator = 3,
+  flying = 4,
+  aquatic = 5,
 }
