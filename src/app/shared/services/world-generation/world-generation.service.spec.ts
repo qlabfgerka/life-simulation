@@ -63,17 +63,17 @@ describe('WorldGenerationService', () => {
     index = 41;
     value = service.getValue(length, index);
 
-    expect(value).toBe(1);
+    expect(value).toBe(0);
 
     index = 76;
     value = service.getValue(length, index);
 
-    expect(value).toBe(3);
+    expect(value).toBe(1);
 
     index = 91;
     value = service.getValue(length, index);
 
-    expect(value).toBe(0);
+    expect(value).toBe(3);
 
     index = 93;
     value = service.getValue(length, index);

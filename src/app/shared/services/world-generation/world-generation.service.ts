@@ -146,9 +146,9 @@ export class WorldGenerationService {
     const fifthIntervalEnd = Math.floor(length * 0.95);
 
     if (index < firstIntervalEnd) return 2;
-    if (index >= firstIntervalEnd && index < secondIntervalEnd) return 1;
-    if (index >= secondIntervalEnd && index < thirdIntervalEnd) return 3;
-    if (index >= thirdIntervalEnd && index < fourthIntervalEnd) return 0;
+    if (index >= firstIntervalEnd && index < secondIntervalEnd) return 0;
+    if (index >= secondIntervalEnd && index < thirdIntervalEnd) return 1;
+    if (index >= thirdIntervalEnd && index < fourthIntervalEnd) return 3;
     if (index >= fourthIntervalEnd && index < fifthIntervalEnd) return 5;
     if (index > fifthIntervalEnd) return 4;
 

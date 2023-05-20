@@ -93,7 +93,7 @@ describe('SmartObjectService', () => {
   it('should reproduce', () => {
     const first = new SmartObjectDTO('#000000', 0, 1, 1, 1, 1, 1, 1, true, 1, 1);
     const second = new SmartObjectDTO('#000000', 0, 1, 1, 1, 1, 1, 1, false, 1, 1);
-    const size: number = 100;
+    const size: number = 50;
 
     first.reproductionCooldown = 0;
     second.reproductionCooldown = 0;
@@ -105,12 +105,12 @@ describe('SmartObjectService', () => {
     first.mesh = mesh;
     second.mesh = mesh;
 
-    expect(service.reproduce(first, second, size, matrix)).not.toBeNull();
+    expect(service.reproduce(first, second, size, matrix).length).toBe(1);
 
     first.reproductionCooldown = 0;
     second.reproductionCooldown = 0;
 
-    expect(service.reproduce(second, first, size, matrix)).not.toBeNull();
+    expect(service.reproduce(second, first, size, matrix).length).toBe(1);
   });
 
   it('should not reproduce', () => {
@@ -128,27 +128,27 @@ describe('SmartObjectService', () => {
     first.mesh = mesh;
     second.mesh = mesh;
 
-    expect(service.reproduce(null!, null!, size, matrix)).toBeNull();
-    expect(service.reproduce(null!, second, size, matrix)).toBeNull();
-    expect(service.reproduce(first, null!, size, matrix)).toBeNull();
+    expect(service.reproduce(null!, null!, size, matrix).length).toBe(0);
+    expect(service.reproduce(null!, second, size, matrix).length).toBe(0);
+    expect(service.reproduce(first, null!, size, matrix).length).toBe(0);
 
     second.gender = true;
 
-    expect(service.reproduce(first, second, size, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix).length).toBe(0);
 
     second.gender = false;
     second.typeId = first.typeId + 1;
 
-    expect(service.reproduce(first, second, size, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix).length).toBe(0);
 
     first.reproductionCooldown = 1;
 
-    expect(service.reproduce(first, second, size, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix).length).toBe(0);
 
     first.reproductionCooldown = 0;
     second.reproductionCooldown = 1;
 
-    expect(service.reproduce(first, second, size, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix).length).toBe(0);
   });
 
   it('should eat object', () => {
@@ -266,7 +266,7 @@ describe('SmartObjectService', () => {
     object.energy = 0.1;
     object.isFlying = false;
 
-    matrix[5][5] = 2;
+    matrix[5 + size][5 + size] = 2;
 
     service.updateValues(object, size, matrix);
 
@@ -288,7 +288,7 @@ describe('SmartObjectService', () => {
     object.energy = 0.1;
     object.isFlying = false;
 
-    matrix[5][5] = 3;
+    matrix[5 + size][5 + size] = 3;
 
     service.updateValues(object, size, matrix);
 
@@ -309,7 +309,7 @@ describe('SmartObjectService', () => {
     object.energy = 0.1;
     object.isFlying = false;
 
-    matrix[5][5] = 4;
+    matrix[5 + size][5 + size] = 4;
 
     service.updateValues(object, size, matrix);
 
@@ -372,7 +372,7 @@ describe('SmartObjectService', () => {
 
     predator.mesh = mesh;
 
-    matrix[5][5] = 3;
+    matrix[5 + size][5 + size] = 3;
 
     service.updateValues(flyingPrey, size, matrix);
 

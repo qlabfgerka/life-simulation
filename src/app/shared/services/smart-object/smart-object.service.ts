@@ -5,6 +5,7 @@ import { ThreeHelper } from '../../helpers/three/three.helper';
 import { Aggression } from '../../models/aggression/aggression.enum';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
 import { PlantDTO } from '../../models/plant/plant.model';
+import { PlantType } from '../../models/plant/plant-type.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -71,8 +72,7 @@ export class SmartObjectService {
         if (i === j) continue;
 
         // Try to reproduce
-        newborn = this.reproduce(objects[i], objects[j], size, world);
-        if (newborn) newborns.push(newborn);
+        newborns = newborns.concat(this.reproduce(objects[i], objects[j], size, world));
 
         // Try to eat object
         if (this.eatObject(objects[i], objects[j], size, world)) toSplice.push(j);
@@ -111,7 +111,6 @@ export class SmartObjectService {
 
     // Initialize newborn objects
     for (const newObject of newborns) {
-      this.initObject(newObject, size, world);
       ThreeHelper.getMesh(newObject);
       objects.push(newObject);
       scene.add(newObject.mesh);
@@ -186,25 +185,32 @@ export class SmartObjectService {
     second: SmartObjectDTO,
     size: number,
     world: Array<Array<number>>
-  ): SmartObjectDTO | null {
-    if (!first || !second) return null;
+  ): SmartObjectDTO[] {
+    const newborns: SmartObjectDTO[] = [];
+
+    if (!first || !second) return newborns;
 
     // If they are not the same type (both prey or both predators), they cannot mutate
     // They also cannot mutate if they are the same gender
-    if (first.typeId !== second.typeId || first.gender === second.gender) return null;
+    if (first.typeId !== second.typeId || first.gender === second.gender) return newborns;
 
     // If either of the objects has a reproduction cooldown, they cannot reproduce
-    if (first.reproductionCooldown !== 0 || second.reproductionCooldown !== 0) return null;
+    if (first.reproductionCooldown !== 0 || second.reproductionCooldown !== 0) return newborns;
 
     // If objects don't overlap, they cant mutate
-    if (!this.objectsOverlap(first, second)) return null;
+    if (!this.objectsOverlap(first, second)) return newborns;
 
     // Flying objects must be in forest and not flying
     if (first.typeId === Aggression.flying && second.typeId === Aggression.flying) {
-      if (first.isFlying || second.isFlying) return null;
+      if (first.isFlying || second.isFlying) return newborns;
 
-      if (world[first.y + size][first.x + size] !== 3) return null;
-      if (world[second.y + size][second.x + size] !== 3) return null;
+      if (world[first.y + size][first.x + size] !== 3) return newborns;
+      if (world[second.y + size][second.x + size] !== 3) return newborns;
+    }
+
+    // Aquatic objects must be on sand
+    if (first.typeId === Aggression.aquatic && second.typeId === Aggression.aquatic) {
+      if (world[first.y + size][first.x + size] !== 0) return newborns;
     }
 
     // Decide the gender
@@ -214,22 +220,36 @@ export class SmartObjectService {
     first.reproductionCooldown = first.reproduction;
     second.reproductionCooldown = second.reproduction;
 
-    // Create a newborn with mutated properties
-    const newborn: SmartObjectDTO = new SmartObjectDTO(
-      genderDecision ? first.color : second.color,
-      first.typeId,
-      this.mutate(first.radius, second.radius, first.variation, second.variation),
-      this.mutate(first.hunger, second.hunger, first.variation, second.variation),
-      this.mutate(first.thirst, second.thirst, first.variation, second.variation),
-      this.mutate(first.reproduction, second.reproduction, first.variation, second.variation),
-      this.mutate(first.age, second.age, first.variation, second.variation),
-      this.mutate(first.perception, second.perception, first.variation, second.variation),
-      genderDecision ? first.gender : second.gender,
-      this.mutate(first.velocity, second.velocity, first.variation, second.variation),
-      this.mutate(first.variation, second.variation, first.variation, second.variation)
-    );
+    // Aquatic objects have several newborns, all others have one
+    const amount: number = first.typeId === Aggression.aquatic ? CommonHelper.getRandomIntInclusive(5, 10) : 1;
+    let newborn: SmartObjectDTO;
 
-    return newborn;
+    for (let i = 0; i < amount; i++) {
+      // Create a newborn with mutated properties
+      newborn = new SmartObjectDTO(
+        genderDecision ? first.color : second.color,
+        first.typeId,
+        this.mutate(first.radius, second.radius, first.variation, second.variation),
+        this.mutate(first.hunger, second.hunger, first.variation, second.variation),
+        this.mutate(first.thirst, second.thirst, first.variation, second.variation),
+        this.mutate(first.reproduction, second.reproduction, first.variation, second.variation),
+        this.mutate(first.age, second.age, first.variation, second.variation),
+        this.mutate(first.perception, second.perception, first.variation, second.variation),
+        genderDecision ? first.gender : second.gender,
+        this.mutate(first.velocity, second.velocity, first.variation, second.variation),
+        this.mutate(first.variation, second.variation, first.variation, second.variation)
+      );
+
+      if (newborn.typeId === Aggression.aquatic) {
+        newborn.x = first.x;
+        newborn.y = second.y;
+      } else this.initObject(newborn, size, world);
+
+      if ((newborn.typeId === Aggression.aquatic && Math.random() < 0.5) || newborn.typeId !== Aggression.aquatic)
+        newborns.push(newborn);
+    }
+
+    return newborns;
   }
 
   public eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO, size: number, world: Array<Array<number>>): boolean {
@@ -252,6 +272,9 @@ export class SmartObjectService {
 
     // Flying objects cannot be eaten inside of the forest
     if (prey.typeId === Aggression.flying && world[prey.y + size][prey.x + size] === 3) return false;
+
+    // Aquatic objects can only be eaten on sand
+    if (prey.typeId === Aggression.aquatic && world[prey.y + size][prey.x + size] !== 0) return false;
 
     // Predator will eat prey, reset the hunger factor
     predator.hunger = 0;
@@ -282,9 +305,12 @@ export class SmartObjectService {
   public updateValues(object: SmartObjectDTO, size: number, world: Array<Array<number>>): void {
     if (!object) throw new Error('Object should not be null');
 
+    // Aquatic objects take longer to reproduce
+    const cooldownDecrement: number = object.typeId === Aggression.aquatic ? 0.01 : 0.1;
+
     // Countdown the reproduction counter
     // once the counter reaches zero, the object can reproduce
-    if (object.reproductionCooldown > 0) object.reproductionCooldown -= 0.1;
+    if (object.reproductionCooldown > 0) object.reproductionCooldown -= cooldownDecrement;
     else object.reproductionCooldown = 0;
 
     // Age the object
@@ -311,8 +337,17 @@ export class SmartObjectService {
     object.getRandomTarget(size);
 
     // Update the thirst factor, update it faster if object is hungry
-    if (object.thirst < 1) object.thirst += object.hunger === 1 ? 0.2 : 0.005 * object.radius;
-    else object.thirst = 1;
+    if (object.typeId !== Aggression.aquatic) {
+      if (object.thirst < 1) object.thirst += object.hunger === 1 ? 0.2 : 0.005 * object.radius;
+      else object.thirst = 1;
+    }
+    // If the object is aquatic and in sand, quick thirst gain, otherwise no thirst gain
+    else {
+      if (world[object.y + size][object.x + size] === 0) {
+        if (object.thirst < 1) object.thirst + 0.2;
+        else object.thirst = 1;
+      }
+    }
 
     // Update the hunger factor
     if (object.hunger < 1) object.hunger += 0.005 / object.velocity;
@@ -345,7 +380,7 @@ export class SmartObjectService {
     // otherwise try to find a prey object
     if (first.hunger > first.reproduction && first.hunger > first.thirst)
       moved =
-        first.typeId === Aggression.prey
+        first.typeId === Aggression.prey || first.typeId === Aggression.aquatic
           ? this.findPlant(first, objects, plants, world, size, scene)
           : this.findPartner(first, objects, world, size, false);
 
@@ -385,7 +420,7 @@ export class SmartObjectService {
     if (y > size - 1) y = size - 1;
 
     if (
-      (object.typeId === Aggression.aquatic && world[y + size][x + size] !== 2) ||
+      (object.typeId === Aggression.aquatic && world[y + size][x + size] !== 2 && world[y + size][x + size] !== 0) ||
       ((object.typeId === Aggression.predator || object.typeId === Aggression.prey) && world[y + size][x + size] === 2)
     ) {
       // Otherwise rotate the direction and move there
@@ -410,6 +445,10 @@ export class SmartObjectService {
     partnering: boolean
   ): boolean {
     const possiblePartners: SmartObjectDTO[] = [];
+
+    // Aquatic objects have to be on sand to reproduce
+    if (object.typeId === Aggression.aquatic && world[object.y + size][object.x + size] !== 0)
+      return this.findTerrain(object, objects, world, size, 0);
 
     for (const other of objects) {
       if (object.id === other.id) continue;
@@ -491,6 +530,11 @@ export class SmartObjectService {
     let box: THREE.Box3;
     let sphere: THREE.Sphere;
     let potentialFood: PlantDTO[] = [];
+    let plantType: PlantType = object.typeId === Aggression.aquatic ? PlantType.aquatic : PlantType.land;
+
+    // Aquatic objects can eat only aquatic plants
+    // and land object can eat only land plants
+    plants = plants.filter((plant: PlantDTO) => plant.typeId === plantType);
 
     for (let i = plants.length - 1; i >= 0; i--) {
       // Check if plant is within the perception of the object
