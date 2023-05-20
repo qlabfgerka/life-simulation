@@ -48,6 +48,7 @@ export class LifeSimulationComponent implements OnDestroy {
   private id!: number;
   private clock!: THREE.Clock;
   private delta!: number;
+  private totalTime!: number;
   private interval!: number;
   private secondsPassed!: number;
 
@@ -151,7 +152,18 @@ export class LifeSimulationComponent implements OnDestroy {
   }
 
   public step(): void {
-    this.delta += this.clock.getDelta();
+    const delta = this.clock.getDelta();
+    this.delta += delta;
+    this.totalTime += delta;
+
+    [this.plants, this.scene] = this.plantService.update(
+      this.plants,
+      this.scene,
+      this.size,
+      this.worldMatrix,
+      this.totalTime
+    );
+
     [this.objects, this.scene] = this.smartObjectService.update(
       this.objects,
       this.food,
@@ -201,6 +213,7 @@ export class LifeSimulationComponent implements OnDestroy {
 
     this.clock = new THREE.Clock();
     this.delta = 0;
+    this.totalTime = 0;
     this.interval = 1;
     this.secondsPassed = 0;
 

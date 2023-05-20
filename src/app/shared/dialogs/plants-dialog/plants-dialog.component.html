@@ -39,19 +39,19 @@
               *ngIf="plantsArray.controls[i].get('size')!.errors && plantsArray.controls[i].get('size')!.errors!['max']"
               style="display: block"
             >
-              Maximum value is 20.</mat-error
+              Maximum value is 15.</mat-error
             >
           </mat-form-field>
 
           <mat-form-field appearance="fill" class="margin-right">
-            <input matInput type="number" formControlName="growthRate" placeholder="Growth rate (0.001)" />
+            <input matInput type="number" formControlName="growthRate" placeholder="Growth rate (1)" />
             <mat-error
               *ngIf="
                 plantsArray.controls[i].get('growthRate')!.errors &&
                 plantsArray.controls[i].get('growthRate')!.errors!['required']
               "
             >
-              Please enter a growth rate factor.</mat-error
+              Please enter a growth rate factor (seconds).</mat-error
             >
 
             <mat-error
@@ -71,7 +71,7 @@
               "
               style="display: block"
             >
-              Maximum value is 1.</mat-error
+              Maximum value is 100.</mat-error
             >
           </mat-form-field>
 
@@ -124,7 +124,7 @@
               "
               style="display: block"
             >
-              Minimum value is 1.</mat-error
+              Minimum value is 0.</mat-error
             >
 
             <mat-error
@@ -133,7 +133,7 @@
               "
               style="display: block"
             >
-              Maximum value is 100.</mat-error
+              Maximum value is 1.</mat-error
             >
           </mat-form-field>
 

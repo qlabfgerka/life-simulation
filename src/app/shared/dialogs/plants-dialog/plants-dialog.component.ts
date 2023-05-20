@@ -37,21 +37,21 @@ export class PlantsDialogComponent {
   }
 
   public addPlantInput(
-    amount: number | string = 10,
+    amount: number | string = 5,
     size: number = 10,
-    growthRate: number = 0,
+    growthRate: number = 5,
     spreadRadius: number = 0.2,
-    value: number = 100,
+    value: number = 0.5,
     seedOutput: number = 2,
     variation: number = 0.05
   ): void {
     this.plantsArray.push(
       this.formBuilder.group({
         amount: [amount, [Validators.required]],
-        size: [size, [Validators.required, Validators.min(2), Validators.max(20)]],
-        growthRate: [growthRate, [Validators.required, Validators.min(0), Validators.max(1)]],
+        size: [size, [Validators.required, Validators.min(2), Validators.max(15)]],
+        growthRate: [growthRate, [Validators.required, Validators.min(0), Validators.max(100)]],
         spreadRadius: [spreadRadius, [Validators.required, Validators.min(0), Validators.max(1)]],
-        value: [value, [Validators.required, Validators.min(1), Validators.max(100)]],
+        value: [value, [Validators.required, Validators.min(0), Validators.max(1)]],
         seedOutput: [seedOutput, [Validators.required, Validators.min(0), Validators.max(20)]],
         variation: [variation, [Validators.required, Validators.min(0), Validators.max(1)]],
       })

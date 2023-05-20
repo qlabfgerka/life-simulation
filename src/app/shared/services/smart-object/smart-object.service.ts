@@ -72,11 +72,11 @@ export class SmartObjectService {
         if (i === j) continue;
 
         // Try to reproduce
-        newborn = this.reproduce(objects[i], objects[j], world);
+        newborn = this.reproduce(objects[i], objects[j], size, world);
         if (newborn) newborns.push(newborn);
 
         // Try to eat object
-        if (this.eatObject(objects[i], objects[j], world)) toSplice.push(j);
+        if (this.eatObject(objects[i], objects[j], size, world)) toSplice.push(j);
       }
 
       // Move the object
@@ -182,7 +182,12 @@ export class SmartObjectService {
     return false;
   }
 
-  public reproduce(first: SmartObjectDTO, second: SmartObjectDTO, world: Array<Array<number>>): SmartObjectDTO | null {
+  public reproduce(
+    first: SmartObjectDTO,
+    second: SmartObjectDTO,
+    size: number,
+    world: Array<Array<number>>
+  ): SmartObjectDTO | null {
     if (!first || !second) return null;
 
     // If they are not the same type (both prey or both predators), they cannot mutate
@@ -199,8 +204,8 @@ export class SmartObjectService {
     if (first.typeId === Aggression.flying && second.typeId === Aggression.flying) {
       if (first.isFlying || second.isFlying) return null;
 
-      if (world[first.mesh.position.y][first.mesh.position.x] !== 3) return null;
-      if (world[second.mesh.position.y][second.mesh.position.x] !== 3) return null;
+      if (world[first.y + size][first.x + size] !== 3) return null;
+      if (world[second.y + size][second.x + size] !== 3) return null;
     }
 
     // Decide the gender
@@ -228,7 +233,7 @@ export class SmartObjectService {
     return newborn;
   }
 
-  public eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO, world: Array<Array<number>>): boolean {
+  public eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO, size: number, world: Array<Array<number>>): boolean {
     if (!predator || !prey) return false;
 
     // If object is not predator or flying, it can not eat objects
@@ -247,7 +252,7 @@ export class SmartObjectService {
     if (prey.isFlying) return false;
 
     // Flying objects cannot be eaten inside of the forest
-    if (prey.typeId === Aggression.flying && world[prey.mesh.position.y][prey.mesh.position.x] === 3) return false;
+    if (prey.typeId === Aggression.flying && world[prey.y + size][prey.x + size] === 3) return false;
 
     // Predator will eat prey, reset the hunger factor
     predator.hunger = 0;
@@ -296,11 +301,11 @@ export class SmartObjectService {
 
     if (object.typeId === Aggression.flying && !object.isFlying) {
       // Flying objects die in water if they're not flying
-      if (world[object.mesh.position.y][object.mesh.position.x] === 2) object.currentAge = object.age + 1;
+      if (world[object.y + size][object.x + size] === 2) object.currentAge = object.age + 1;
       // They gain energy quickly in forests if they're not flying
-      else if (world[object.mesh.position.y][object.mesh.position.x] === 3) object.energy += 0.2;
+      else if (world[object.y + size][object.x + size] === 3) object.energy += 0.2;
       // They gain energy slowly on mountains if they're not flying
-      else if (world[object.mesh.position.y][object.mesh.position.x] === 4) object.energy += 0.15;
+      else if (world[object.y + size][object.x + size] === 4) object.energy += 0.15;
     }
 
     // Get a new random target to move to

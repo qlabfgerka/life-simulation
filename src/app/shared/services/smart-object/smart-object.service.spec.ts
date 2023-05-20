@@ -93,6 +93,7 @@ describe('SmartObjectService', () => {
   it('should reproduce', () => {
     const first = new SmartObjectDTO('#000000', 0, 1, 1, 1, 1, 1, 1, true, 1, 1);
     const second = new SmartObjectDTO('#000000', 0, 1, 1, 1, 1, 1, 1, false, 1, 1);
+    const size: number = 100;
 
     first.reproductionCooldown = 0;
     second.reproductionCooldown = 0;
@@ -104,17 +105,18 @@ describe('SmartObjectService', () => {
     first.mesh = mesh;
     second.mesh = mesh;
 
-    expect(service.reproduce(first, second, matrix)).not.toBeNull();
+    expect(service.reproduce(first, second, size, matrix)).not.toBeNull();
 
     first.reproductionCooldown = 0;
     second.reproductionCooldown = 0;
 
-    expect(service.reproduce(second, first, matrix)).not.toBeNull();
+    expect(service.reproduce(second, first, size, matrix)).not.toBeNull();
   });
 
   it('should not reproduce', () => {
     const first = new SmartObjectDTO('#000000', 0, 1, 1, 1, 1, 1, 1, true, 1, 1);
     const second = new SmartObjectDTO('#000000', 0, 1, 1, 1, 1, 1, 1, false, 1, 1);
+    const size: number = 100;
 
     first.reproductionCooldown = 0;
     second.reproductionCooldown = 0;
@@ -126,32 +128,33 @@ describe('SmartObjectService', () => {
     first.mesh = mesh;
     second.mesh = mesh;
 
-    expect(service.reproduce(null!, null!, matrix)).toBeNull();
-    expect(service.reproduce(null!, second, matrix)).toBeNull();
-    expect(service.reproduce(first, null!, matrix)).toBeNull();
+    expect(service.reproduce(null!, null!, size, matrix)).toBeNull();
+    expect(service.reproduce(null!, second, size, matrix)).toBeNull();
+    expect(service.reproduce(first, null!, size, matrix)).toBeNull();
 
     second.gender = true;
 
-    expect(service.reproduce(first, second, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix)).toBeNull();
 
     second.gender = false;
     second.typeId = first.typeId + 1;
 
-    expect(service.reproduce(first, second, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix)).toBeNull();
 
     first.reproductionCooldown = 1;
 
-    expect(service.reproduce(first, second, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix)).toBeNull();
 
     first.reproductionCooldown = 0;
     second.reproductionCooldown = 1;
 
-    expect(service.reproduce(first, second, matrix)).toBeNull();
+    expect(service.reproduce(first, second, size, matrix)).toBeNull();
   });
 
   it('should eat object', () => {
     const predator = new SmartObjectDTO('#000000', Aggression.predator, 1, 1, 1, 1, 1, 1, true, 1, 1);
     const prey = new SmartObjectDTO('#000000', Aggression.prey, 1, 1, 1, 1, 1, 1, true, 1, 1);
+    const size: number = 100;
 
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
@@ -160,13 +163,14 @@ describe('SmartObjectService', () => {
     predator.mesh = mesh;
     prey.mesh = mesh;
 
-    expect(service.eatObject(predator, prey, matrix)).toBeTrue();
+    expect(service.eatObject(predator, prey, size, matrix)).toBeTrue();
     expect(predator.hunger).toBe(0);
   });
 
   it('should not eat object', () => {
     const predator = new SmartObjectDTO('#000000', Aggression.predator, 1, 1, 1, 1, 1, 1, true, 1, 1);
     const prey = new SmartObjectDTO('#000000', Aggression.prey, 1, 1, 1, 1, 1, 1, true, 1, 1);
+    const size: number = 100;
 
     const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
     const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -175,25 +179,25 @@ describe('SmartObjectService', () => {
     predator.mesh = mesh;
     prey.mesh = mesh;
 
-    expect(service.eatObject(null!, null!, matrix)).toBeFalse();
-    expect(service.eatObject(null!, prey, matrix)).toBeFalse();
-    expect(service.eatObject(predator, null!, matrix)).toBeFalse();
-    expect(service.eatObject(prey, null!, matrix)).toBeFalse();
-    expect(service.eatObject(null!, predator, matrix)).toBeFalse();
+    expect(service.eatObject(null!, null!, size, matrix)).toBeFalse();
+    expect(service.eatObject(null!, prey, size, matrix)).toBeFalse();
+    expect(service.eatObject(predator, null!, size, matrix)).toBeFalse();
+    expect(service.eatObject(prey, null!, size, matrix)).toBeFalse();
+    expect(service.eatObject(null!, predator, size, matrix)).toBeFalse();
 
-    expect(service.eatObject(predator, predator, matrix)).toBeFalse();
-    expect(service.eatObject(prey, prey, matrix)).toBeFalse();
+    expect(service.eatObject(predator, predator, size, matrix)).toBeFalse();
+    expect(service.eatObject(prey, prey, size, matrix)).toBeFalse();
 
-    expect(service.eatObject(prey, predator, matrix)).toBeFalse();
+    expect(service.eatObject(prey, predator, size, matrix)).toBeFalse();
 
     predator.typeId = Aggression.prey;
 
-    expect(service.eatObject(predator, prey, matrix)).toBeFalse();
+    expect(service.eatObject(predator, prey, size, matrix)).toBeFalse();
 
     predator.typeId = Aggression.predator;
     prey.typeId = Aggression.predator;
 
-    expect(service.eatObject(predator, prey, matrix)).toBeFalse();
+    expect(service.eatObject(predator, prey, size, matrix)).toBeFalse();
   });
 
   it('should be near water', () => {
@@ -273,18 +277,12 @@ describe('SmartObjectService', () => {
   it('should gain energy fast', () => {
     const object = new SmartObjectDTO('#000000', Aggression.flying, 1, 0, 0, 0, 100, 1, true, 1, 1);
     const size: number = 50;
-    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const mesh = new THREE.Mesh(geometry, material);
     let matrix: Array<Array<number>>;
 
     matrix = Array(size * 2)
       .fill(0)
       .map(() => Array(size * 2).fill(0));
 
-    object.mesh = mesh;
-    object.mesh.position.x = 5;
-    object.mesh.position.y = 5;
     object.x = 5;
     object.y = 5;
     object.energy = 0.1;
@@ -300,18 +298,12 @@ describe('SmartObjectService', () => {
   it('should gain energy slowly', () => {
     const object = new SmartObjectDTO('#000000', Aggression.flying, 1, 0, 0, 0, 100, 1, true, 1, 1);
     const size: number = 50;
-    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const mesh = new THREE.Mesh(geometry, material);
     let matrix: Array<Array<number>>;
 
     matrix = Array(size * 2)
       .fill(0)
       .map(() => Array(size * 2).fill(0));
 
-    object.mesh = mesh;
-    object.mesh.position.x = 5;
-    object.mesh.position.y = 5;
     object.x = 5;
     object.y = 5;
     object.energy = 0.1;
@@ -352,7 +344,7 @@ describe('SmartObjectService', () => {
 
     service.updateValues(flyingPrey, size, matrix);
 
-    expect(service.eatObject(predator, flyingPrey, matrix)).toBeTrue();
+    expect(service.eatObject(predator, flyingPrey, size, matrix)).toBeTrue();
     expect(predator.hunger).toBe(0);
   });
 
@@ -384,6 +376,6 @@ describe('SmartObjectService', () => {
 
     service.updateValues(flyingPrey, size, matrix);
 
-    expect(service.eatObject(predator, flyingPrey, matrix)).toBeFalse();
+    expect(service.eatObject(predator, flyingPrey, size, matrix)).toBeFalse();
   });
 });
