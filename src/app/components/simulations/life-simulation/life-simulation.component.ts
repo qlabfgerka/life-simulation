@@ -4,11 +4,9 @@ import { PlantsDialogComponent } from 'src/app/shared/dialogs/plants-dialog/plan
 import { SmartObjectsDialogComponent } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.component';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
 import { Aggression } from 'src/app/shared/models/aggression/aggression.enum';
-import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { PerlinMethod } from 'src/app/shared/models/perlin-method/perlin-method.enum';
 import { PlantDTO } from 'src/app/shared/models/plant/plant.model';
 import { SmartObjectDTO } from 'src/app/shared/models/smart-object/smart-object.model';
-import { FoodService } from 'src/app/shared/services/food/food.service';
 import { PlantService } from 'src/app/shared/services/plant/plant.service';
 import { SmartObjectService } from 'src/app/shared/services/smart-object/smart-object.service';
 import { WorldGenerationService } from 'src/app/shared/services/world-generation/world-generation.service';
@@ -23,7 +21,6 @@ export class LifeSimulationComponent implements OnDestroy {
   @ViewChild('frame', { static: false }) private readonly frame!: ElementRef;
 
   public objects!: SmartObjectDTO[];
-  public food!: FoodDTO[];
   public paused!: boolean;
 
   public plants!: PlantDTO[];
@@ -31,8 +28,6 @@ export class LifeSimulationComponent implements OnDestroy {
   public settingsVisible: boolean = true;
   public captureVisible: boolean = false;
   public capturePeriod: number = 1000;
-  public foodAmount: number = 20;
-  public foodSize: number = 10;
   public size: number = 250;
   public waters: number = 4;
   public scale: number = 80;
@@ -50,7 +45,6 @@ export class LifeSimulationComponent implements OnDestroy {
   private delta!: number;
   private totalTime!: number;
   private interval!: number;
-  private secondsPassed!: number;
 
   private worldMatrix!: Array<Array<number>>;
 
@@ -65,7 +59,6 @@ export class LifeSimulationComponent implements OnDestroy {
     private readonly worldGenerationService: WorldGenerationService,
     private readonly smartObjectService: SmartObjectService,
     private readonly plantService: PlantService,
-    private readonly foodService: FoodService,
     private readonly dialog: MatDialog
   ) {}
 
@@ -123,7 +116,7 @@ export class LifeSimulationComponent implements OnDestroy {
 
   public beginCapture(): void {
     if (this.captureInterval) clearInterval(this.captureInterval);
-    this.captureContent = `sep=;\nType;Food amount;Population size;Average hunger;Max hunger;Min hunger;Average thirst;Max thirst;Min thirst;Average reproduction;Max reproduction;Min reproduction;Average age;Max age;Min age;Average perception;Max perception;Min perception;Average velocity;Max velocity;Min velocity;Average radius;Max radius;Min radius; Average variation;Max variation;Min variation\n`;
+    this.captureContent = `sep=;\nType;Plant amount;Population size;Average hunger;Max hunger;Min hunger;Average thirst;Max thirst;Min thirst;Average reproduction;Max reproduction;Min reproduction;Average age;Max age;Min age;Average perception;Max perception;Min perception;Average velocity;Max velocity;Min velocity;Average radius;Max radius;Min radius; Average variation;Max variation;Min variation\n`;
 
     this.captureInterval = setInterval(() => {
       this.captureContent += `${this.getData(Aggression.predator)}${this.getData(Aggression.prey)}`;
@@ -166,23 +159,14 @@ export class LifeSimulationComponent implements OnDestroy {
 
     [this.objects, this.scene] = this.smartObjectService.update(
       this.objects,
-      this.food,
+      this.plants,
       this.scene,
       this.size,
       this.worldMatrix,
       this.delta > this.interval
     );
 
-    if (this.delta > this.interval) {
-      this.delta = this.delta % this.interval;
-      ++this.secondsPassed;
-
-      if (this.secondsPassed >= 5) {
-        this.foodService.spawnFood(this.food, this.size, 1, this.foodSize, this.scene, this.worldMatrix);
-
-        this.secondsPassed = 0;
-      }
-    }
+    if (this.delta > this.interval) this.delta = this.delta % this.interval;
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -199,7 +183,6 @@ export class LifeSimulationComponent implements OnDestroy {
     this.camera = ThreeHelper.initCamera(this.size);
 
     this.scene = new THREE.Scene();
-    this.food = [];
 
     this.worldMatrix = this.worldGenerationService.generateWorld(
       this.size,
@@ -215,15 +198,12 @@ export class LifeSimulationComponent implements OnDestroy {
     this.delta = 0;
     this.totalTime = 0;
     this.interval = 1;
-    this.secondsPassed = 0;
 
     this.smartObjectService.initializePositions(this.objects, this.size, this.worldMatrix);
     this.plantService.initializePositions(this.plants, this.size, this.worldMatrix);
 
     ThreeHelper.drawObjects(this.objects, this.scene);
     ThreeHelper.drawPlants(this.plants, this.scene);
-
-    this.foodService.spawnFood(this.food, this.size, this.foodAmount, this.foodSize, this.scene, this.worldMatrix);
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -251,7 +231,7 @@ export class LifeSimulationComponent implements OnDestroy {
     const radius = objects.map((object: SmartObjectDTO) => object.radius);
     const variation = objects.map((object: SmartObjectDTO) => object.variation);
 
-    return `${Aggression[type]};${this.food.length};${objects.length};${this.getParameterStats(
+    return `${Aggression[type]};${this.plants.length};${objects.length};${this.getParameterStats(
       hunger
     )};${this.getParameterStats(thirst)};${this.getParameterStats(reproduction)};${this.getParameterStats(
       age

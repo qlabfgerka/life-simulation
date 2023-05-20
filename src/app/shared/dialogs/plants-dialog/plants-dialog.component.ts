@@ -40,7 +40,7 @@ export class PlantsDialogComponent {
     amount: number | string = 5,
     size: number = 10,
     growthRate: number = 5,
-    spreadRadius: number = 0.2,
+    spreadRadius: number = 2,
     value: number = 0.5,
     seedOutput: number = 2,
     variation: number = 0.05
@@ -50,7 +50,7 @@ export class PlantsDialogComponent {
         amount: [amount, [Validators.required]],
         size: [size, [Validators.required, Validators.min(2), Validators.max(15)]],
         growthRate: [growthRate, [Validators.required, Validators.min(0), Validators.max(100)]],
-        spreadRadius: [spreadRadius, [Validators.required, Validators.min(0), Validators.max(1)]],
+        spreadRadius: [spreadRadius, [Validators.required, Validators.min(1), Validators.max(10)]],
         value: [value, [Validators.required, Validators.min(0), Validators.max(1)]],
         seedOutput: [seedOutput, [Validators.required, Validators.min(0), Validators.max(20)]],
         variation: [variation, [Validators.required, Validators.min(0), Validators.max(1)]],

@@ -3,9 +3,8 @@ import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
 import { ThreeHelper } from '../../helpers/three/three.helper';
 import { Aggression } from '../../models/aggression/aggression.enum';
-import { FoodDTO } from '../../models/food/food.model';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
-import { Terrain } from '../../models/terrain/terrain.enum';
+import { PlantDTO } from '../../models/plant/plant.model';
 
 @Injectable({
   providedIn: 'root',
@@ -56,7 +55,7 @@ export class SmartObjectService {
 
   public update(
     objects: SmartObjectDTO[],
-    food: FoodDTO[],
+    plants: PlantDTO[],
     scene: THREE.Scene,
     size: number,
     world: Array<Array<number>>,
@@ -80,7 +79,7 @@ export class SmartObjectService {
       }
 
       // Move the object
-      this.moveObject(objects[i], objects, food, world, size, scene);
+      this.moveObject(objects[i], objects, plants, world, size, scene);
 
       // If the object is near water, it can drink
       if (this.isNearWater(objects[i].y + size, objects[i].x + size, size, world) && objects[i].thirst > 0.5) {
@@ -327,7 +326,7 @@ export class SmartObjectService {
   private moveObject(
     first: SmartObjectDTO,
     objects: SmartObjectDTO[],
-    food: FoodDTO[],
+    plants: PlantDTO[],
     world: Array<Array<number>>,
     size: number,
     scene: THREE.Scene
@@ -342,12 +341,12 @@ export class SmartObjectService {
     if (first.thirst > first.reproduction && first.thirst > first.hunger)
       moved = this.findTerrain(first, objects, world, size, 2);
 
-    // If the hunger rate is the highest, try to find food if the object is prey
+    // If the hunger rate is the highest, try to find plants if the object is prey
     // otherwise try to find a prey object
     if (first.hunger > first.reproduction && first.hunger > first.thirst)
       moved =
         first.typeId === Aggression.prey
-          ? this.findFood(first, objects, food, world, size, scene)
+          ? this.findPlant(first, objects, plants, world, size, scene)
           : this.findPartner(first, objects, world, size, false);
 
     // Flying objects should prefer to move towards forests
@@ -481,42 +480,52 @@ export class SmartObjectService {
     return false;
   }
 
-  private findFood(
+  private findPlant(
     object: SmartObjectDTO,
     objects: SmartObjectDTO[],
-    food: FoodDTO[],
+    plants: PlantDTO[],
     world: Array<Array<number>>,
     size: number,
     scene: THREE.Scene
   ): boolean {
     let box: THREE.Box3;
     let sphere: THREE.Sphere;
+    let potentialFood: PlantDTO[] = [];
 
-    for (let i = food.length - 1; i >= 0; i--) {
-      // Check if food is within the perception of the object
-      if (object.mesh.position.distanceTo(food[i].mesh.position) < object.perception + object.radius) {
-        box = new THREE.Box3().setFromObject(food[i].mesh);
+    for (let i = plants.length - 1; i >= 0; i--) {
+      // Check if plant is within the perception of the object
+      if (object.mesh.position.distanceTo(plants[i].mesh.position) < object.perception + object.radius) {
+        box = new THREE.Box3().setFromObject(plants[i].mesh);
         sphere = new THREE.Sphere(object.mesh.position, object.radius);
 
-        // If object intersects food, it is already there
-        // eat the food and remove it from the scene
+        // If object intersects plant, it is already there
+        // eat the plant and remove it from the scene
         if (box.intersectsSphere(sphere)) {
           // Decrease the hunger factor
-          object.hunger -= food[i].value;
+          object.hunger -= plants[i].value;
           if (object.hunger < 0) object.hunger = 0;
 
-          scene.remove(food[i].mesh);
-          food.splice(i, 1);
+          scene.remove(plants[i].mesh);
+          plants.splice(i, 1);
 
-          // Object has not moved, as it has already reached the food
+          // Object has not moved, as it has already reached the plant
           return false;
         }
 
-        // Move toward the food
-        this.moveTowardsTarget(object, objects, food[i].mesh.position, world, size);
-        return true;
+        potentialFood.push(plants[i]);
       }
     }
+
+    // No possible plants, return the object has not moved
+    if (potentialFood.length === 0) return false;
+
+    // Sort the possible plants by maturity if the object is not too hungry
+    if (object.hunger > 0.5) potentialFood.sort((a, b) => b.maturity - a.maturity);
+    // Otherwise sort them by most nutritious
+    else potentialFood.sort((a, b) => b.value - a.value);
+
+    // Move to the partner with the biggest size
+    this.moveTowardsTarget(object, objects, potentialFood[0].mesh.position, world, size);
 
     // Object has not moved
     return false;
