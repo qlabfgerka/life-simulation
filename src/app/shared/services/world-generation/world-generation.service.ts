@@ -70,7 +70,7 @@ export class WorldGenerationService {
     return worldMatrix;
   }
 
-  private addWater(matrix: Array<Array<number>>, size: number, radius: number): void {
+  public addWater(matrix: Array<Array<number>>, size: number, radius: number): void {
     const chunk = size / 3;
     radius = radius + 10;
 
@@ -97,12 +97,15 @@ export class WorldGenerationService {
       matrix[i] = [];
       for (let j = 0; j < size; j++) {
         const noiseValue = noise.perlin2(i / scale, j / scale);
+        // If we're using the fast technique, just get the simple transformed value
         matrix[i][j] = slow ? noiseValue : this.transformValue(noiseValue);
       }
     }
 
     if (!slow) return matrix;
 
+    // Otherwise if we're using the slow technique, first the values must be sorted
+    // into a 1D array and then transformed into a dictionary for fast access.
     values = matrix.flat().sort((a, b) => a - b);
     const valueIndexMap = new Map(values.map((value, index) => [value, index]));
 
@@ -116,6 +119,9 @@ export class WorldGenerationService {
   }
 
   private transformValue(value: number): number {
+    // The interval is [-1, 1], split that interval into
+    // [-1, -0.2] which is the first 40%, [-0.2, 0.5] which is the second 40%,
+    // and return the terrain value based on where the value fits.
     if (value < -0.2) return 2;
     if (value >= -0.2 && value < 0.5) return 1;
     if (value >= 0.5 && value < 0.8) return 3;
@@ -126,7 +132,13 @@ export class WorldGenerationService {
     return 2;
   }
 
-  private getValue(length: number, index: number): number {
+  public getValue(length: number, index: number): number {
+    if (length < 0) return -1;
+
+    // Interval is sorted, therefore it can be split into intervals:
+    // first interval is the first 40%, second interval is the second 40% etc.
+    // Return the corresponding terrain value based on which interval the
+    // index fits into.
     const firstIntervalEnd = Math.floor(length * 0.4);
     const secondIntervalEnd = Math.floor(length * 0.75);
     const thirdIntervalEnd = Math.floor(length * 0.9);
