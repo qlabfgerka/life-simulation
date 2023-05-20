@@ -8,7 +8,8 @@
 </div>
 
 <div class="flexbox" *ngIf="settingsVisible">
-  <button mat-raised-button color="accent" (click)="openSettings()">SETTINGS</button>
+  <button mat-raised-button color="accent" (click)="openSettings()">OBJECTS</button>
+  <button mat-raised-button color="accent" (click)="openPlantSettings()">PLANTS</button>
 
   <button mat-raised-button color="accent" (click)="step()" [disabled]="!paused || !objects || objects.length === 0">
     STEP

@@ -12,6 +12,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SmartObjectsDialogModule } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.module';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSelectModule } from '@angular/material/select';
+import { PlantsDialogModule } from 'src/app/shared/dialogs/plants-dialog/plants-dialog.module';
 
 @NgModule({
   declarations: [LifeSimulationComponent],
@@ -25,6 +26,7 @@ import { MatSelectModule } from '@angular/material/select';
     BarChartModule,
     MatCheckboxModule,
     SmartObjectsDialogModule,
+    PlantsDialogModule,
     MatSliderModule,
     MatSelectModule,
   ],

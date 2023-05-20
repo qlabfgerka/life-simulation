@@ -1,6 +1,7 @@
 import { ElementRef } from '@angular/core';
 import * as THREE from 'three';
 import { ObjectDTO } from '../../models/object/object.model';
+import { PlantDTO } from '../../models/plant/plant.model';
 
 export class ThreeHelper {
   public static initCamera(size: number): THREE.OrthographicCamera {
@@ -31,11 +32,30 @@ export class ThreeHelper {
     object.mesh = mesh;
   }
 
+  public static getPlantMesh(plant: PlantDTO): void {
+    const geometry = new THREE.BoxGeometry(plant.size, plant.size, plant.size);
+    const material = new THREE.MeshBasicMaterial({ color: plant.color });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.position.x = plant.x;
+    mesh.position.y = plant.y;
+    mesh.position.z = 50;
+    plant.mesh = mesh;
+  }
+
   public static drawObjects(objects: ObjectDTO[], scene: THREE.Scene): void {
     for (const object of objects) {
       this.getMesh(object);
 
       scene.add(object.mesh);
+    }
+  }
+
+  public static drawPlants(plants: PlantDTO[], scene: THREE.Scene): void {
+    for (const plant of plants) {
+      this.getPlantMesh(plant);
+
+      scene.add(plant.mesh);
     }
   }
 }

@@ -1,0 +1,212 @@
+<mat-dialog-content>
+  <div class="scrollable-container">
+    <form [formGroup]="plantsForm" *ngIf="plantsForm">
+      <div formArrayName="plants">
+        <div *ngFor="let plantForm of plantsArray.controls; let i = index" [formGroupName]="i" class="object-box">
+          <div class="title">{{ names[i] }}</div>
+          <div class="break"></div>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input matInput type="number" formControlName="amount" placeholder="Amount of plants" />
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('amount')!.errors &&
+                plantsArray.controls[i].get('amount')!.errors!['required']
+              "
+            >
+              Please enter an amount.
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input matInput type="number" formControlName="size" placeholder="Size (2)" />
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('size')!.errors && plantsArray.controls[i].get('size')!.errors!['required']
+              "
+            >
+              Please enter a size.</mat-error
+            >
+
+            <mat-error
+              *ngIf="plantsArray.controls[i].get('size')!.errors && plantsArray.controls[i].get('size')!.errors!['min']"
+              style="display: block"
+            >
+              Minimum value is 2.</mat-error
+            >
+
+            <mat-error
+              *ngIf="plantsArray.controls[i].get('size')!.errors && plantsArray.controls[i].get('size')!.errors!['max']"
+              style="display: block"
+            >
+              Maximum value is 20.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input matInput type="number" formControlName="growthRate" placeholder="Growth rate (0.001)" />
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('growthRate')!.errors &&
+                plantsArray.controls[i].get('growthRate')!.errors!['required']
+              "
+            >
+              Please enter a growth rate factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('growthRate')!.errors &&
+                plantsArray.controls[i].get('growthRate')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('growthRate')!.errors &&
+                plantsArray.controls[i].get('growthRate')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input matInput type="number" formControlName="spreadRadius" placeholder="Spread radius (0.001)" />
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('spreadRadius')!.errors &&
+                plantsArray.controls[i].get('spreadRadius')!.errors!['required']
+              "
+            >
+              Please enter a spread radius factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('spreadRadius')!.errors &&
+                plantsArray.controls[i].get('spreadRadius')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('spreadRadius')!.errors &&
+                plantsArray.controls[i].get('spreadRadius')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input matInput type="number" formControlName="value" placeholder="Value (0.001)" />
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('value')!.errors &&
+                plantsArray.controls[i].get('value')!.errors!['required']
+              "
+            >
+              Please enter a food value.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('value')!.errors && plantsArray.controls[i].get('value')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 1.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('value')!.errors && plantsArray.controls[i].get('value')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 100.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="margin-right">
+            <input matInput type="number" formControlName="seedOutput" placeholder="Seed output (0.001)" />
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('seedOutput')!.errors &&
+                plantsArray.controls[i].get('seedOutput')!.errors!['required']
+              "
+            >
+              Please enter a seed output amount.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('seedOutput')!.errors &&
+                plantsArray.controls[i].get('seedOutput')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('seedOutput')!.errors &&
+                plantsArray.controls[i].get('seedOutput')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 20.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <input matInput type="number" formControlName="variation" placeholder="Variation (0.001)" />
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('variation')!.errors &&
+                plantsArray.controls[i].get('variation')!.errors!['required']
+              "
+            >
+              Please enter a variation factor.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('variation')!.errors &&
+                plantsArray.controls[i].get('variation')!.errors!['min']
+              "
+              style="display: block"
+            >
+              Minimum value is 0.</mat-error
+            >
+
+            <mat-error
+              *ngIf="
+                plantsArray.controls[i].get('variation')!.errors &&
+                plantsArray.controls[i].get('variation')!.errors!['max']
+              "
+              style="display: block"
+            >
+              Maximum value is 1.</mat-error
+            >
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="static">
+    <button mat-raised-button color="accent" (click)="accept()">ACCEPT</button>
+    <button mat-raised-button (click)="cancel()">CANCEL</button>
+  </div>
+</mat-dialog-content>

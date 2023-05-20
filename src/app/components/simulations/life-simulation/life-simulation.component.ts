@@ -1,12 +1,15 @@
 import { Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { PlantsDialogComponent } from 'src/app/shared/dialogs/plants-dialog/plants-dialog.component';
 import { SmartObjectsDialogComponent } from 'src/app/shared/dialogs/smart-objects-dialog/smart-objects-dialog.component';
 import { ThreeHelper } from 'src/app/shared/helpers/three/three.helper';
 import { Aggression } from 'src/app/shared/models/aggression/aggression.enum';
 import { FoodDTO } from 'src/app/shared/models/food/food.model';
 import { PerlinMethod } from 'src/app/shared/models/perlin-method/perlin-method.enum';
+import { PlantDTO } from 'src/app/shared/models/plant/plant.model';
 import { SmartObjectDTO } from 'src/app/shared/models/smart-object/smart-object.model';
 import { FoodService } from 'src/app/shared/services/food/food.service';
+import { PlantService } from 'src/app/shared/services/plant/plant.service';
 import { SmartObjectService } from 'src/app/shared/services/smart-object/smart-object.service';
 import { WorldGenerationService } from 'src/app/shared/services/world-generation/world-generation.service';
 import * as THREE from 'three';
@@ -22,6 +25,8 @@ export class LifeSimulationComponent implements OnDestroy {
   public objects!: SmartObjectDTO[];
   public food!: FoodDTO[];
   public paused!: boolean;
+
+  public plants!: PlantDTO[];
 
   public settingsVisible: boolean = true;
   public captureVisible: boolean = false;
@@ -58,6 +63,7 @@ export class LifeSimulationComponent implements OnDestroy {
   constructor(
     private readonly worldGenerationService: WorldGenerationService,
     private readonly smartObjectService: SmartObjectService,
+    private readonly plantService: PlantService,
     private readonly foodService: FoodService,
     private readonly dialog: MatDialog
   ) {}
@@ -94,7 +100,23 @@ export class LifeSimulationComponent implements OnDestroy {
 
       if (data.objects) this.objects = data.objects;
 
-      this.reset();
+      if (this.plants && this.plants.length > 0) this.reset();
+    });
+  }
+
+  public openPlantSettings(): void {
+    const settingsDialogRef = this.dialog.open(PlantsDialogComponent, {
+      data: {
+        plants: this.plants,
+      },
+    });
+
+    settingsDialogRef.afterClosed().subscribe((data: any) => {
+      if (!data) return;
+
+      if (data.plants) this.plants = data.plants;
+
+      if (this.objects && this.objects.length > 0) this.reset();
     });
   }
 
@@ -183,8 +205,11 @@ export class LifeSimulationComponent implements OnDestroy {
     this.secondsPassed = 0;
 
     this.smartObjectService.initializePositions(this.objects, this.size, this.worldMatrix);
+    this.plantService.initializePositions(this.plants, this.size, this.worldMatrix);
 
     ThreeHelper.drawObjects(this.objects, this.scene);
+    ThreeHelper.drawPlants(this.plants, this.scene);
+
     this.foodService.spawnFood(this.food, this.size, this.foodAmount, this.foodSize, this.scene, this.worldMatrix);
 
     this.renderer.render(this.scene, this.camera);
