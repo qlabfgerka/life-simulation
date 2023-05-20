@@ -5,6 +5,7 @@ import { ThreeHelper } from '../../helpers/three/three.helper';
 import { Aggression } from '../../models/aggression/aggression.enum';
 import { FoodDTO } from '../../models/food/food.model';
 import { SmartObjectDTO } from '../../models/smart-object/smart-object.model';
+import { Terrain } from '../../models/terrain/terrain.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -71,21 +72,24 @@ export class SmartObjectService {
         if (i === j) continue;
 
         // Try to reproduce
-        newborn = this.reproduce(objects[i], objects[j]);
+        newborn = this.reproduce(objects[i], objects[j], world);
         if (newborn) newborns.push(newborn);
 
         // Try to eat object
-        if (this.eatObject(objects[i], objects[j])) toSplice.push(j);
+        if (this.eatObject(objects[i], objects[j], world)) toSplice.push(j);
       }
 
       // Move the object
       this.moveObject(objects[i], objects, food, world, size, scene);
 
       // If the object is near water, it can drink
-      if (this.isNearWater(objects[i].y + size, objects[i].x + size, size, world)) objects[i].thirst = 0;
+      if (this.isNearWater(objects[i].y + size, objects[i].x + size, size, world) && objects[i].thirst > 0.5) {
+        if (objects[i].typeId === Aggression.flying) objects[i].isFlying = false;
+        objects[i].thirst -= 0.1;
+      }
 
       // Update the values every interval (for example every second)
-      if (intervalPassed) this.updateValues(objects[i], size);
+      if (intervalPassed) this.updateValues(objects[i], size, world);
 
       // Object has aged, kill it
       if (objects[i].currentAge > objects[i].age) toSplice.push(i);
@@ -178,7 +182,7 @@ export class SmartObjectService {
     return false;
   }
 
-  public reproduce(first: SmartObjectDTO, second: SmartObjectDTO): SmartObjectDTO | null {
+  public reproduce(first: SmartObjectDTO, second: SmartObjectDTO, world: Array<Array<number>>): SmartObjectDTO | null {
     if (!first || !second) return null;
 
     // If they are not the same type (both prey or both predators), they cannot mutate
@@ -190,6 +194,14 @@ export class SmartObjectService {
 
     // If objects don't overlap, they cant mutate
     if (!this.objectsOverlap(first, second)) return null;
+
+    // Flying objects must be in forest and not flying
+    if (first.typeId === Aggression.flying && second.typeId === Aggression.flying) {
+      if (first.isFlying || second.isFlying) return null;
+
+      if (world[first.mesh.position.y][first.mesh.position.x] !== 3) return null;
+      if (world[second.mesh.position.y][second.mesh.position.x] !== 3) return null;
+    }
 
     // Decide the gender
     const genderDecision = Math.random() > 0.5;
@@ -216,17 +228,26 @@ export class SmartObjectService {
     return newborn;
   }
 
-  public eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO): boolean {
+  public eatObject(predator: SmartObjectDTO, prey: SmartObjectDTO, world: Array<Array<number>>): boolean {
     if (!predator || !prey) return false;
 
-    // If object is not predator, it can not eat objects
-    if (predator.typeId !== Aggression.predator) return false;
+    // If object is not predator or flying, it can not eat objects
+    if (predator.typeId !== Aggression.predator && predator.typeId !== Aggression.flying) return false;
 
     // If both objects are predators, they cannot eat eachother
     if (predator.typeId === prey.typeId) return false;
 
     // If objects don't overlap, they cant eat eachtoher
     if (!this.objectsOverlap(predator, prey)) return false;
+
+    // Flying type predators cannot eat old prey
+    if (predator.typeId === Aggression.flying && prey.currentAge > 20) return false;
+
+    // Object must not be flying
+    if (prey.isFlying) return false;
+
+    // Flying objects cannot be eaten inside of the forest
+    if (prey.typeId === Aggression.flying && world[prey.mesh.position.y][prey.mesh.position.x] === 3) return false;
 
     // Predator will eat prey, reset the hunger factor
     predator.hunger = 0;
@@ -254,7 +275,7 @@ export class SmartObjectService {
     return value * factor * secondFactor;
   }
 
-  public updateValues(object: SmartObjectDTO, size: number): void {
+  public updateValues(object: SmartObjectDTO, size: number, world: Array<Array<number>>): void {
     if (!object) throw new Error('Object should not be null');
 
     // Countdown the reproduction counter
@@ -264,6 +285,23 @@ export class SmartObjectService {
 
     // Age the object
     ++object.currentAge;
+
+    if (object.typeId === Aggression.flying) object.energy -= 0.1;
+
+    // Flying objects start to fly based on their energy and thirst
+    if (object.typeId === Aggression.flying && object.energy > 0.5 && object.thirst <= 0.5) object.isFlying = true;
+
+    // If flying objects have low energy or high thirst, they have to land
+    if (object.typeId === Aggression.flying && (object.energy <= 0.5 || object.thirst > 0.5)) object.isFlying = false;
+
+    if (object.typeId === Aggression.flying && !object.isFlying) {
+      // Flying objects die in water if they're not flying
+      if (world[object.mesh.position.y][object.mesh.position.x] === 2) object.currentAge = object.age + 1;
+      // They gain energy quickly in forests if they're not flying
+      else if (world[object.mesh.position.y][object.mesh.position.x] === 3) object.energy += 0.2;
+      // They gain energy slowly on mountains if they're not flying
+      else if (world[object.mesh.position.y][object.mesh.position.x] === 4) object.energy += 0.15;
+    }
 
     // Get a new random target to move to
     object.getRandomTarget(size);
@@ -297,7 +335,7 @@ export class SmartObjectService {
 
     // If the thirst rate is the highest, try to find water
     if (first.thirst > first.reproduction && first.thirst > first.hunger)
-      moved = this.findWater(first, objects, world, size);
+      moved = this.findTerrain(first, objects, world, size, 2);
 
     // If the hunger rate is the highest, try to find food if the object is prey
     // otherwise try to find a prey object
@@ -306,6 +344,10 @@ export class SmartObjectService {
         first.typeId === Aggression.prey
           ? this.findFood(first, objects, food, world, size, scene)
           : this.findPartner(first, objects, world, size, false);
+
+    // Flying objects should prefer to move towards forests
+    if (!moved && first.typeId === Aggression.flying && first.energy < 0.52)
+      moved = this.findTerrain(first, objects, world, size, 3);
 
     // If the object has not yet moved, move to a random target
     if (!moved) this.moveTowardsTarget(first, objects, first.target, world, size);
@@ -375,16 +417,21 @@ export class SmartObjectService {
         object.mesh.position.distanceTo(other.mesh.position) < object.perception + object.radius &&
         object.gender !== other.gender &&
         object.typeId === other.typeId &&
-        object.reproductionCooldown === 0
+        object.reproductionCooldown === 0 &&
+        !object.isFlying &&
+        !other.isFlying
       )
         possiblePartners.push(other);
 
       if (
         !partnering &&
         object.mesh.position.distanceTo(other.mesh.position) < object.perception + object.radius &&
-        object.typeId !== other.typeId
-      )
-        possiblePartners.push(other);
+        object.typeId !== other.typeId &&
+        !other.isFlying
+      ) {
+        if (object.typeId === Aggression.flying && other.currentAge < 20) possiblePartners.push(other);
+        else if (object.typeId !== Aggression.flying) possiblePartners.push(other);
+      }
     }
 
     // No possible partners, return the object has not moved
@@ -400,11 +447,12 @@ export class SmartObjectService {
     return true;
   }
 
-  private findWater(
+  private findTerrain(
     object: SmartObjectDTO,
     objects: SmartObjectDTO[],
     world: Array<Array<number>>,
-    size: number
+    size: number,
+    terrain: number
   ): boolean {
     let startY: number;
     let startX: number;
@@ -417,7 +465,7 @@ export class SmartObjectService {
     // Search for water in the bounding box
     for (let i = startY; i < endY; i++) {
       for (let j = startX; j < endX; j++) {
-        if (world[i][j] !== 2) continue;
+        if (world[i][j] !== terrain) continue;
 
         // If water is found, move to the water
         this.moveTowardsTarget(object, objects, new THREE.Vector3(i - size, j - size, 50), world, size);

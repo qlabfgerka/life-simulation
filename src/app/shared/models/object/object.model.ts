@@ -13,9 +13,6 @@ export class ObjectDTO {
   mesh: THREE.Mesh;
   foodFound: number;
 
-  /**
-   *
-   */
   constructor(color: string, typeId: number, dieRate: number, spawnRate: number, constant: number, radius: number = 5) {
     this.id = nanoid();
     this.typeId = typeId;

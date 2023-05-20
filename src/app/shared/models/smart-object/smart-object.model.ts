@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { CommonHelper } from '../../helpers/common/common.helper';
 import { ObjectDTO } from '../object/object.model';
+import { Aggression } from '../aggression/aggression.enum';
 
 export class SmartObjectDTO extends ObjectDTO {
   hunger: number;
@@ -15,6 +16,9 @@ export class SmartObjectDTO extends ObjectDTO {
   reproductionCooldown: number;
   currentAge: number;
   target: THREE.Vector3;
+
+  isFlying: boolean;
+  energy: number;
 
   constructor(
     color: string,
@@ -43,6 +47,9 @@ export class SmartObjectDTO extends ObjectDTO {
     this.currentAge = 0;
     this.reproductionCooldown = reproduction;
     this.target = new THREE.Vector3(0, 0, 50);
+
+    this.isFlying = typeId === Aggression.flying;
+    this.energy = 1;
   }
 
   public getRandomTarget(size: number) {
